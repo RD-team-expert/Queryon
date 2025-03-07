@@ -10,28 +10,28 @@ class CreateRDODataTable  extends Migration
     {
         Schema::create('rdo_data_table', function (Blueprint $table) {
             $table->id();
-            $table->string('Name_Lable');
-            $table->string('Name_ID');
-            $table->date('HookTodaysDate');
-            $table->text('HookWhoWillCoverYourShiftIfYouDontHaveYouCanWriteNA');
-            $table->date('HookStartDate');
-            $table->date('HookEndDate');
-            $table->string('HookDepartment_ID');
-            $table->string('HookDepartment_Lable');
-            $table->integer('HookHowManyDaysDoYouNeed2');
-            $table->string('HookType');
-            $table->string('HookAreYouAbleToProvideAProof');
-            $table->string('HookHowManyDaysDoYouNeed2_IncrementBy');
-            $table->string('HookAreYouAbleToProvideMoreSpecificPlease_IsRequired');
-            $table->string('DirectManagerName_ID');
-            $table->string('DirectManagerName_Lable');
+            $table->string('Name_Lable')->nullable();
+            $table->string('Name_ID')->nullable();
+            $table->date('HookTodaysDate')->nullable();
+            $table->text('HookWhoWillCoverYourShiftIfYouDontHaveYouCanWriteNA')->nullable();
+            $table->date('HookStartDate')->nullable();
+            $table->date('HookEndDate')->nullable();
+            $table->string('HookDepartment_ID')->nullable();
+            $table->string('HookDepartment_Lable')->nullable();
+            $table->integer('HookHowManyDaysDoYouNeed2')->nullable();
+            $table->string('HookType')->nullable();
+            $table->string('HookAreYouAbleToProvideAProof')->nullable();
+            $table->string('HookHowManyDaysDoYouNeed2_IncrementBy')->nullable();
+            $table->string('HookAreYouAbleToProvideMoreSpecificPlease_IsRequired')->nullable();
+            $table->string('DirectManagerName_ID')->nullable();
+            $table->string('DirectManagerName_Lable')->nullable();
             $table->string('HookApprove')->nullable();
             $table->string('Note')->nullable();
-            $table->string('AdminLink');
-            $table->string('Status');
-            $table->string('PublicLink');
-            $table->string('InternalLink');
-            $table->string('Entry_Number');
+            $table->string('AdminLink')->nullable();
+            $table->string('Status')->nullable();
+            $table->string('PublicLink')->nullable();
+            $table->string('InternalLink')->nullable();
+            $table->string('Entry_Number')->nullable();
             $table->timestamps();
         });
     }

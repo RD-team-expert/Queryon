@@ -4,9 +4,11 @@ use App\Http\Middleware\CheckSecretHeader;
 
 use App\Http\Controllers\ExportEMPDataController;
 use App\Http\Controllers\ExportRDODataController;
+use App\Http\Controllers\Export_Late_Early_Controller;
 
 use App\Http\Controllers\EmployeesDataController;
 use App\Http\Controllers\RDO_Data_Controller;
+use App\Http\Controllers\LateEarlyController;
 
 
 
@@ -44,3 +46,20 @@ Route::get('/rdo_data/excel', [ExportRDODataController::class, 'exportToExcel'])
 Route::get('/rdo_data/data', [ExportRDODataController::class, 'getData']);
 // end point to excel
 Route::get('/rdo_data/export', [ExportRDODataController::class, 'export']);
+
+
+//********** Late_Early Data Form **************//
+Route::post('/store-late-early', [LateEarlyController::class, 'store']);
+Route::post('/update-late-early', [LateEarlyController::class, 'update']);
+Route::post('/delete-late-early', [LateEarlyController::class, 'destroy']);
+
+
+
+// Route to export Late_Early data as CSV for Excel
+Route::get('/export-late-early/excel', [Export_Late_Early_Controller::class, 'exportToExcel']);
+
+// Route to return all Late_Early data as JSON
+Route::get('/export-late-early/data', [Export_Late_Early_Controller::class, 'getData']);
+
+// Route to export Late_Early data as downloadable CSV
+Route::get('/export-late-early', [Export_Late_Early_Controller::class, 'export']);
