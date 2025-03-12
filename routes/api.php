@@ -63,7 +63,7 @@ Route::post('/delete-late-early', [LateEarlyController::class, 'destroy']);
 //get data
 // Route to export Late_Early data as CSV for Excel
 Route::get('/export-late-early/excel', [Export_Late_Early_Controller::class, 'exportToExcel'])
-/*->middleware(CheckSecretHeader::class)*/;
+->middleware(CheckSecretHeader::class);
 
 // Route to return all Late_Early data as JSON
 Route::get('/export-late-early/data', [Export_Late_Early_Controller::class, 'getData'])
