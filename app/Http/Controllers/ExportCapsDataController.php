@@ -4,77 +4,147 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\CapsData;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ExportCapsDataController extends Controller
 {
     /**
-     * Export all Caps data as JSON.
+     * Export CapsData as a CSV for Excel.
      */
-    public function create(Request $request)
+    public function exportToExcel()
     {
-        // Retrieve all records from the CapsData table
-        $capsData = CapsData::all();
+        // Fetch all records from the caps_data table
+        $data = CapsData::all();
 
-        return response()->json([
-            'message' => 'Caps data exported as JSON successfully',
-            'data'    => $capsData
-        ], 200);
-    }
+        // Define the columns to export (all fields)
+        $columns = [
+            'id',
+            'hook_date_of_incident',
+            'hook_cap_type',
+            'hook_managements_statement',
+            'hook_name_person_doing_the_cap_id',
+            'hook_name_person_doing_the_cap_label',
+            'hook_email_person_doing_the_cap_label',
+            'hook_employee_name_id',
+            'hook_employee_name_label',
+            'hook_employee_email_label',
+            'hook_title_person_doing_the_cap',
+            'hook_the_email_person_doing_the_cap',
+            'hook_the_email_employee_email',
+            'hook_depatmant_name_filter',
+            'hook_emp_section',
+            'hook_employees_statement',
+            'admin_link',
+            'number',
+            'timestamp',
+            'cap_link',
+            'emp_link',
+            'view1_link',
+            'upper_management_link',
+            'the_next_manager_above_link',
+            'upper_manager_in_the_department_link',
+            'witness1_link',
+            'witness2_link',
+            'created_at',
+            'updated_at'
+        ];
 
-    /**
-     * Export all Caps data as CSV.
-     */
-    public function update(Request $request)
-    {
-        // Retrieve all records from the CapsData table
-        $capsData = CapsData::all();
-        $filename = "caps_data_export.csv";
+        // Open a memory stream
+        $handle = fopen('php://memory', 'r+');
 
-        $response = new StreamedResponse(function() use ($capsData) {
-            $handle = fopen('php://output', 'w');
+        // Write CSV header row
+        fputcsv($handle, $columns);
 
-            if ($capsData->isNotEmpty()) {
-                // Write CSV header using the keys from the first record
-                $headers = array_keys($capsData->first()->toArray());
-                fputcsv($handle, $headers);
-
-                // Write each record as a CSV row
-                foreach ($capsData as $data) {
-                    fputcsv($handle, $data->toArray());
-                }
-            } else {
-                // No data found, write an empty header
-                fputcsv($handle, []);
+        // Loop through each record and write data to CSV
+        foreach ($data as $item) {
+            $row = [];
+            foreach ($columns as $col) {
+                $row[] = $item->{$col};
             }
-
-            fclose($handle);
-        }, 200, [
-            "Content-Type"        => "text/csv",
-            "Content-Disposition" => "attachment; filename={$filename}"
-        ]);
-
-        return $response;
-    }
-
-    /**
-     * Export all Caps data as XML.
-     */
-    public function destroy(Request $request)
-    {
-        // Retrieve all records from the CapsData table
-        $capsData = CapsData::all();
-        $xml = new \SimpleXMLElement('<CapsDataExport/>');
-
-        foreach ($capsData as $data) {
-            $item = $xml->addChild('CapsData');
-            foreach ($data->toArray() as $key => $value) {
-                // Use htmlspecialchars to escape any special characters
-                $item->addChild($key, htmlspecialchars($value));
-            }
+            fputcsv($handle, $row);
         }
 
-        return response($xml->asXML(), 200)
-            ->header('Content-Type', 'application/xml');
+        // Rewind the memory stream and get its contents
+        rewind($handle);
+        $csv = stream_get_contents($handle);
+        fclose($handle);
+
+        // Return the CSV as a response, with headers for Excel compatibility
+        return response($csv)
+            ->header('Content-Type', 'text/csv')
+            ->header('Content-Disposition', 'inline; filename="caps_data.csv"');
+    }
+
+    /**
+     * Return all CapsData as JSON.
+     */
+    public function getData()
+    {
+        // Fetch all records from the caps_data table
+        $data = CapsData::all();
+        return response()->json($data);
+    }
+
+    /**
+     * Export all CapsData as a downloadable CSV.
+     */
+    public function export()
+    {
+        // Fetch all records from the caps_data table
+        $data = CapsData::all();
+
+        // Define the columns to export (all fields)
+        $columns = [
+            'id',
+            'hook_date_of_incident',
+            'hook_cap_type',
+            'hook_managements_statement',
+            'hook_name_person_doing_the_cap_id',
+            'hook_name_person_doing_the_cap_label',
+            'hook_email_person_doing_the_cap_label',
+            'hook_employee_name_id',
+            'hook_employee_name_label',
+            'hook_employee_email_label',
+            'hook_title_person_doing_the_cap',
+            'hook_the_email_person_doing_the_cap',
+            'hook_the_email_employee_email',
+            'hook_depatmant_name_filter',
+            'hook_emp_section',
+            'hook_employees_statement',
+            'admin_link',
+            'number',
+            'timestamp',
+            'cap_link',
+            'emp_link',
+            'view1_link',
+            'upper_management_link',
+            'the_next_manager_above_link',
+            'upper_manager_in_the_department_link',
+            'witness1_link',
+            'witness2_link',
+            'created_at',
+            'updated_at'
+        ];
+
+        // Define a callback that writes CSV rows directly to the output stream
+        $callback = function() use ($data, $columns) {
+            $file = fopen('php://output', 'w');
+            // Write header row
+            fputcsv($file, $columns);
+
+            // Write each record as a CSV row
+            foreach ($data as $item) {
+                $row = [];
+                foreach ($columns as $col) {
+                    $row[] = $item->{$col};
+                }
+                fputcsv($file, $row);
+            }
+            fclose($file);
+        };
+
+        // Return a streaming download response using Laravel's response()->streamDownload method
+        return response()->streamDownload($callback, 'caps_data.csv', [
+            'Content-Type' => 'text/csv',
+        ]);
     }
 }

@@ -76,15 +76,17 @@ Route::get('/export-late-early', [Export_Late_Early_Controller::class, 'export']
 
 //********** Caps Data Form **************//
 
-
 Route::post('/caps/create', [CapsController::class, 'store']);
 Route::post('/caps/update', [CapsController::class, 'update']);
 Route::post('/caps/destroy', [CapsController::class, 'destroy']);
 
 //get data
-Route::get('/export-caps-data/json', [ExportCapsDataController::class, 'create'])
+// Route to export Caps data as CSV for Excel
+Route::get('/export-caps-data/excel', [ExportCapsDataController::class, 'exportToExcel'])
 ->middleware(CheckSecretHeader::class);
-Route::get('/export-caps-data/csv', [ExportCapsDataController::class, 'update'])
+// Route to return all Caps data as JSON
+Route::get('/export-caps-data/data', [ExportCapsDataController::class, 'getData'])
 ->middleware(CheckSecretHeader::class);
-Route::get('/export-caps-data/xml', [ExportCapsDataController::class, 'destroy'])
+// Route to export Caps data as downloadable CSV
+Route::get('/export-caps-data/export', [ExportCapsDataController::class, 'export'])
 ->middleware(CheckSecretHeader::class);
