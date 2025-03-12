@@ -5,7 +5,10 @@ use App\Http\Middleware\CheckSecretHeader;
 use App\Http\Controllers\ExportEMPDataController;
 use App\Http\Controllers\ExportRDODataController;
 use App\Http\Controllers\Export_Late_Early_Controller;
+use App\Http\Controllers\ExportCapsDataController;
 
+
+use App\Http\Controllers\CapsController;
 use App\Http\Controllers\EmployeesDataController;
 use App\Http\Controllers\RDO_Data_Controller;
 use App\Http\Controllers\LateEarlyController;
@@ -41,11 +44,14 @@ Route::post('/rdo_data/destroy', [RDO_Data_Controller::class, 'destroy']);
 
 //Get data
 //Export data as CSV
-Route::get('/rdo_data/excel', [ExportRDODataController::class, 'exportToExcel']);
+Route::get('/rdo_data/excel', [ExportRDODataController::class, 'exportToExcel'])
+->middleware(CheckSecretHeader::class);
 // Return data as JSON
-Route::get('/rdo_data/data', [ExportRDODataController::class, 'getData']);
+Route::get('/rdo_data/data', [ExportRDODataController::class, 'getData'])
+->middleware(CheckSecretHeader::class);
 // end point to excel
-Route::get('/rdo_data/export', [ExportRDODataController::class, 'export']);
+Route::get('/rdo_data/export', [ExportRDODataController::class, 'export'])
+/*->middleware(CheckSecretHeader::class)*/;
 
 
 //********** Late_Early Data Form **************//
@@ -54,12 +60,31 @@ Route::post('/update-late-early', [LateEarlyController::class, 'update']);
 Route::post('/delete-late-early', [LateEarlyController::class, 'destroy']);
 
 
-
+//get data
 // Route to export Late_Early data as CSV for Excel
-Route::get('/export-late-early/excel', [Export_Late_Early_Controller::class, 'exportToExcel']);
+Route::get('/export-late-early/excel', [Export_Late_Early_Controller::class, 'exportToExcel'])
+/*->middleware(CheckSecretHeader::class)*/;
 
 // Route to return all Late_Early data as JSON
-Route::get('/export-late-early/data', [Export_Late_Early_Controller::class, 'getData']);
+Route::get('/export-late-early/data', [Export_Late_Early_Controller::class, 'getData'])
+->middleware(CheckSecretHeader::class);
 
 // Route to export Late_Early data as downloadable CSV
-Route::get('/export-late-early', [Export_Late_Early_Controller::class, 'export']);
+Route::get('/export-late-early', [Export_Late_Early_Controller::class, 'export'])
+->middleware(CheckSecretHeader::class);
+
+
+//********** Caps Data Form **************//
+
+
+Route::post('/caps/create', [CapsController::class, 'store']);
+Route::post('/caps/update', [CapsController::class, 'update']);
+Route::post('/caps/destroy', [CapsController::class, 'destroy']);
+
+//get data
+Route::get('/export-caps-data/json', [ExportCapsDataController::class, 'create'])
+->middleware(CheckSecretHeader::class);
+Route::get('/export-caps-data/csv', [ExportCapsDataController::class, 'update'])
+->middleware(CheckSecretHeader::class);
+Route::get('/export-caps-data/xml', [ExportCapsDataController::class, 'destroy'])
+/*->middleware(CheckSecretHeader::class)*/;

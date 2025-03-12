@@ -1,0 +1,257 @@
+
+{
+  "Form": {
+    "Id": "230",
+    "InternalName": "CopyNVTCorrectiveActionPlan342025",
+    "Name": "copy NVT_ Corrective Action Plan 3/4/2025"
+  },
+  "HookCAPSection": {
+    "HookDateOfIncident": "2025-03-03",
+    "HookCAPType": "Coaching Session",
+    "HookManagementsStatement": "test",
+    "HookWitnessesStatmentsIfAny": null,
+    "HookPersonDoingTheCAPSignature": {
+      "Name": "PersonDoingTheCAPSignature.png",
+      "ContentType": "image/png",
+      "Content": "iVBORw0KGgoAAJRU5ErkJggg==",
+      "File": "https://www.cognitoforms.com/sf/djmtIhu4Z0eZM0MtbkdNbQ?token=W57EezVIS2vfixjT7_yzCSokBiqv4RUPdv8lhJ9KlHrjD81B6H4ndigeuU6A3BAQAtZL5z-mChtpAZEn5_--jw$$"
+    },
+    "HookWitness": [],
+    "HookWitness2": {
+      "HookEmailFirstWitnessEmail": "",
+      "HookEmailSecondWitnessEmail": "",
+      "HookWitnessNameIfAny": {
+        "Id": null,
+        "Label": null
+      },
+      "HookFirstWitnessEmail": {
+        "Id": null,
+        "Label": null
+      },
+      "HookSecondWitnessNameIfAny": {
+        "Id": null,
+        "Label": null
+      },
+      "HookSecondWitnessEmail": {
+        "Id": null,
+        "Label": null
+      },
+      "HookDepatmantNameForTheWitness": null,
+      "HookDepatmantNameForTheWitness2": null
+    },
+    "HookNamePersonDoingTheCAP": {
+      "Id": "106-121",
+      "Label": "jaden hopkins / Raghd Alshoufani"
+    },
+    "HookEmailPersonDoingTheCAP": {
+      "Id": "106-121",
+      "Label": "jaden@pneunited.com"
+    },
+    "HookEmployeeName": {
+      "Id": "106-36",
+      "Label": "Maria Lauder / Shahd Abo Latif"
+    },
+    "HookEmployeeEmail": {
+      "Id": "106-36",
+      "Label": "maria@pneunited.com"
+    },
+    "HookTitlePersonDoingTheCAP": "test",
+    "HookTheEmailPersonDoingTheCAP": "jaden@pneunited.com",
+    "HookTheEmailEmployeeEmail": "maria@pneunited.com",
+    "HookWhoIsTheNextManagerAboveThePersonHandlingTheCorrectiveActionPlan": {
+      "Id": "106-10",
+      "Label": "Lucas Johnson / Tammam Alakabani"
+    },
+    "HookEmailOfTheNextManagerInTheDepartmentAboveThePersonHandlingTheCorrectiveActionPlan": {
+      "Id": "106-10",
+      "Label": "lucas@pnefoods.com"
+    },
+    "HookTheEmailEmailOfTheNextManagerAboveThePersonHandlingTheCorrectiveActionPlan": "lucas@pnefoods.com",
+    "HookAreThereAnyOtherUpperManagerIfSoWhatAreTheirNames": {
+      "Id": null,
+      "Label": null
+    },
+    "HookEmailOfAnyOtherUpperManagersInTheDepartment": {
+      "Id": "106-167",
+      "Label": ""
+    },
+    "HookTheEmailEmailOfAnyOtherUpperManagersInTheDepartment": "",
+    "HookTheFinalDecision": "test",
+    "HookTheUpperMGMT": {
+      "Id": null,
+      "Label": null
+    },
+    "HookEmailOfTheUpperMGMT": {
+      "Id": "106-167",
+      "Label": ""
+    },
+    "HookTheEmailEmailOfTheUpperMGMT": "",
+    "HookDepartment": {
+      "Id": "174-8",
+      "Label": "Research and development"
+    },
+    "HookIsThereAnyOtherManagerYouWouldLikeToMention": {
+      "Id": null,
+      "Label": null
+    },
+    "HookEmailOfTheManager": {
+      "Id": "106-167",
+      "Label": ""
+    },
+    "HookTheEmailEmailOfTheManager": "",
+    "HookDepatmantNameFilter": "Research and development",
+    "HookTheUpperMGMT_IsRequired": false,
+    "HookEmailOfTheUpperMGMT_IsRequired": false
+  },
+  "HookEMPSection": {
+    "HookEmployeeSignature": {
+      "Name": "EmployeeSignature.png",
+      "ContentType": "image/png",
+      "Content": "iVBORw0KGgSUVORK5CYII=",
+      "File": "https://www.cognitoforms.com/sf/djmtIhu4Z0eZM0MtbkdNbQ?token=oVSIunIX6MvCg-RHsC4Qj4pTY6lvochO2lgHgcFvbcD9YxSlu3itwkHbFK0ViTkWUSksnlsDK6ciyquaWL9f2A$$"
+    },
+    "HookEmployeesStatement": "Nooooooooo"
+  },
+  "HookUpperManagementSection": {
+    "HookTheFinalDecisionUpperManagementDecision": "Test",
+    "HookName": {
+      "First": "Test",
+      "FirstAndLast": "Test Test",
+      "Last": "Test",
+      "Middle": null,
+      "MiddleInitial": null,
+      "Prefix": null,
+      "Suffix": null
+    },
+    "HookUpperManagementSignature": {
+      "Name": "UpperManagementSignature.png",
+      "ContentType": "image/png",
+      "Content": "iVBORw0KGgoAAABJRU5ErkJggg==",
+      "File": "https://www.cognitoforms.com/sf/djmtIhu4Z0eZM0MtbkdNbQ?token=Q6BYxE3SbH6tRPyL929QuEwl4lT-ZYB5w0y4F7vndzsCE8fnKZQ91w8Eek7YHJ8x3hgLxx_Q5IUUFJFaRnKYTYYjCMvnzvkIH2hCjlMLp9AFejfbpJ9NgFt40D_hB7Zu"
+    },
+    "HookDoYouUpperManagementAgreeWithThisCorrectiveActionPlanCAP": true,
+    "HookCouldYouPleaseClarifyTheReasonForTheRejectionOfTheCAP": null
+  },
+  "HookTheNextManagerAboveSection": {
+    "HookName": {
+      "First": "Test",
+      "FirstAndLast": "Test Test",
+      "Last": "Test",
+      "Middle": null,
+      "MiddleInitial": null,
+      "Prefix": null,
+      "Suffix": null
+    },
+    "HookDoYouTheNextManagerAboveAgreeWithThisCorrectiveActionPlanCAP": true,
+    "HookCouldYouPleaseClarifyTheReasonForTheRejectionOfTheCAP": null,
+    "HookTheFinalDecisionTheNextManagerAbove": "Test",
+    "HookTheNextManagerAboveSignature": {
+      "Name": "TheNextManagerAboveSignature.png",
+      "ContentType": "image/png",
+      "Content": "iVBORw0KGgoAAAANAILXA/wEHap4STk473wAAAABJRU5ErkJggg==",
+      "File": "https://www.cognitoforms.com/sf/djmtIhu4Z0eZM0MtbkdNbQ?token=HzVPQJU_Is3PCV4L08jQjMP02Z7B4myoQ-6sr8BPNh3M-M2XHW9JEg6Tjfykfaovreu9vMmtQ4q43cn5sLKKws8WZIJsq6FQnvn_lBR3wP8dOdpmod63I8RCNrD6_FXb"
+    }
+  },
+  "HookUpperManagerInTheDepartmentSection": {
+    "HookName": {
+      "First": "Test",
+      "FirstAndLast": "Test Test",
+      "Last": "Test",
+      "Middle": null,
+      "MiddleInitial": null,
+      "Prefix": null,
+      "Suffix": null
+    },
+    "HookDoYouUpperManagerInTheDepartmentAgreeWithThisCorrectiveActionPlanCAP": true,
+    "HookCouldYouPleaseClarifyTheReasonForTheRejectionOfTheCAP": null,
+    "HookTheFinalDecisionUpperManagerInTheDepartment": "Test",
+    "HookUpperManagerInTheDepartmentSignature": {
+      "Name": "UpperManagerInTheDepartmentSignature.png",
+      "ContentType": "image/png",
+      "Content": "iVBORw0KGgoAAAANAABJRU5ErkJggg==",
+      "File": "https://www.cognitoforms.com/sf/djmtIhu4Z0eZM0MtbkdNbQ?token=_a6HWFfoLntvnBEzOgGexTXETzcRTYvFxCQeq3DrlmygPv4YAQiZdiozlQpmxnusfjKilrijF2sbLPm95ieIpHN-Wl7_Pi3OBHatK7IV4Cmm2bxgIgc1VNDupF4GanTuF8cnIuVRm3v2KdJJ_N6OZ_DBoKMFJub9QXU7GKF1TeE$"
+    }
+  },
+  "HookWitnessSection": {
+    "HookWitnessStatement": "Test2",
+    "HookWitnessName": {
+      "First": "Test2",
+      "FirstAndLast": "Test2 Test2",
+      "Last": "Test2",
+      "Middle": null,
+      "MiddleInitial": null,
+      "Prefix": null,
+      "Suffix": null
+    },
+    "HookWitnessSignature": {
+      "Name": "WitnessSignature.png",
+      "ContentType": "image/png",
+      "Content": "iVBORw0KGgoAAAANAAAAAElFTkSuQmCC",
+      "File": "https://www.cognitoforms.com/sf/djmtIhu4Z0eZM0MtbkdNbQ?token=COiu6Pb9L_WeAGslHmea7Es1WZ9Ik7vyRBSL2N4v9azuqe5rmrtBAyx11ksxwjl2n2cou2wKzEvwWqsJVbxdTQ$$"
+    },
+    "HookWitnessStatement_IsRequired": false,
+    "HookWitnessName_IsRequired": false,
+    "HookWitnessSignature_IsRequired": false
+  },
+  "HookWitnessSection2": {
+    "HookWitnessStatement": "Test",
+    "HookWitnessName": {
+      "First": "Test",
+      "FirstAndLast": "Test Test",
+      "Last": "Test",
+      "Middle": null,
+      "MiddleInitial": null,
+      "Prefix": null,
+      "Suffix": null
+    },
+    "HookWitnessSignature": {
+      "Name": "WitnessSignature.png",
+      "ContentType": "image/png",
+      "Content": "iVBORw0KGgoUVORK5CYII=",
+      "File": "https://www.cognitoforms.com/sf/djmtIhu4Z0eZM0MtbkdNbQ?token=X6D134Wx-6_XvZtHNVMy0XUTDT_RHnu0f05Y0TM58nKg3BVPOpZZWc5z9iJw6g7WBkCb9oksHvX0n-bzcQ37tA$$"
+    },
+    "HookWitnessStatement_IsRequired": false,
+    "HookWitnessName_IsRequired": false,
+    "HookWitnessSignature_IsRequired": false
+  },
+  "Entry": {
+    "AdminLink": "https://www.cognitoforms.com/NVT16/230/entries/6",
+    "DateCreated": "2025-03-10T17:18:53.415Z",
+    "DateSubmitted": "2025-03-10T17:18:53.415Z",
+    "DateUpdated": "2025-03-11T11:19:49.695Z",
+    "Number": 6,
+    "Order": null,
+    "Origin": {
+      "City": null,
+      "CountryCode": null,
+      "IpAddress": "23.27.115.220",
+      "IsImported": false,
+      "Region": null,
+      "Timezone": null,
+      "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
+    },
+    "Timestamp": "2025-03-10T17:18:53.415Z",
+    "User": {
+      "Email": "george.warren.pne@gmail.com",
+      "Name": "George Warren"
+    },
+    "Version": 14,
+    "Action": "Update",
+    "Role": "Emp",
+    "Status": "Complited",
+    "CAPLink": "https://www.cognitoforms.com/NVT16/CopyNVTCorrectiveActionPlan342025#rJ7Y4DxoWqc1S9QUMju6SmnFkR81NVxhgRISyok9GJk$*",
+    "EmpLink": "https://www.cognitoforms.com/NVT16/CopyNVTCorrectiveActionPlan342025#Iz3S8a53Vx077190aiTBPty7HqQyhUtPfASaLxuDLaE$*",
+    "View1Link": "https://www.cognitoforms.com/NVT16/CopyNVTCorrectiveActionPlan342025#-y7ZXScbydRWwXPIHhWHl_4-iKscOzIN5CJTq7I802k$*",
+    "UpperManagementLink": "https://www.cognitoforms.com/NVT16/CopyNVTCorrectiveActionPlan342025#U4TN-MSLMW-0XhxIQc99HcW9_DZTdWQwHY8CakA7Y7g$*",
+    "TheNextManagerAboveLink": "https://www.cognitoforms.com/NVT16/CopyNVTCorrectiveActionPlan342025#NkQa7_AL9IK7Si2gRHtM9fhhMHt8U4-sMhNvR1VBYO8$*",
+    "UpperManagerInTheDepartmentLink": "https://www.cognitoforms.com/NVT16/CopyNVTCorrectiveActionPlan342025#Z4SWDi-YpLd2YA5KX8ymCqZnWVkNzL2frmAfQWnkBZg$*",
+    "Witness1Link": "https://www.cognitoforms.com/NVT16/CopyNVTCorrectiveActionPlan342025#i4U6TNO_0FDH_uYxNor-8lBhvvF7-uHxmgK8fT8ftcY$*",
+    "Witness2Link": "https://www.cognitoforms.com/NVT16/CopyNVTCorrectiveActionPlan342025#RAYd1NySC9RiP8-dZDeQNNtarfBl-cp9jixjcozoNFk$*",
+    "Document1": "https://www.cognitoforms.com/d/djmtIhu4Z0eZM0MtbkdNbQ?code=Qa8bcmg13J8E9bbcJv1dVk-2rUoQSjT42tVkfRzdYsQ$",
+    "Document2": "https://www.cognitoforms.com/d/djmtIhu4Z0eZM0MtbkdNbQ?code=qv9DsoGboiyEDv4ipR5Mlcqn6bnC6-h3_qVlBGhea10$"
+  },
+  "Id": "230-6"
+}
+
+
+
