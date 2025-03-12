@@ -51,7 +51,7 @@ Route::get('/rdo_data/data', [ExportRDODataController::class, 'getData'])
 ->middleware(CheckSecretHeader::class);
 // end point to excel
 Route::get('/rdo_data/export', [ExportRDODataController::class, 'export'])
-/*->middleware(CheckSecretHeader::class)*/;
+->middleware(CheckSecretHeader::class);
 
 
 //********** Late_Early Data Form **************//
@@ -87,4 +87,4 @@ Route::get('/export-caps-data/json', [ExportCapsDataController::class, 'create']
 Route::get('/export-caps-data/csv', [ExportCapsDataController::class, 'update'])
 ->middleware(CheckSecretHeader::class);
 Route::get('/export-caps-data/xml', [ExportCapsDataController::class, 'destroy'])
-/*->middleware(CheckSecretHeader::class)*/;
+->middleware(CheckSecretHeader::class);
