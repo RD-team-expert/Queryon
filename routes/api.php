@@ -13,6 +13,11 @@ use App\Http\Controllers\EmployeesDataController;
 use App\Http\Controllers\RDO_Data_Controller;
 use App\Http\Controllers\LateEarlyController;
 
+use App\Http\Controllers\ClockInOutController;
+
+
+
+
 
 
 //********** Employees Data Form **************//
@@ -90,3 +95,12 @@ Route::get('/export-caps-data/data', [ExportCapsDataController::class, 'getData'
 // Route to export Caps data as downloadable CSV
 Route::get('/export-caps-data/export', [ExportCapsDataController::class, 'export'])
 ->middleware(CheckSecretHeader::class);
+
+//********clock in out excel data */
+
+
+
+// Webhook route to handle incoming JSON data
+Route::post('/webhook', [ClockInOutController::class, 'Index']);
+
+

@@ -10,9 +10,14 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "blaspsoft/doxswap": "0.1.0-beta",
+        "convertapi/convertapi-php": "^3.0",
+        "guzzlehttp/guzzle": "*",
         "inertiajs/inertia-laravel": "^2.0",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
+        "phpoffice/phpspreadsheet": "^4.1",
+        "spatie/simple-excel": "*",
         "tightenco/ziggy": "^2.4"
     },
     "require-dev": {
