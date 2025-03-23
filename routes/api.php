@@ -103,4 +103,7 @@ Route::get('/export-caps-data/export', [ExportCapsDataController::class, 'export
 // Webhook route to handle incoming JSON data
 Route::post('/webhook', [ClockInOutController::class, 'Index']);
 
+// Route to delete records by Entry_Number
+Route::post('/clock-in-out/delete-by-entry', [ClockInOutController::class, 'deleteByEntryNumber']);
 
+Route::post('/clock-in-out/update-by-entry', [ClockInOutController::class, 'updateByEntryNumber']);

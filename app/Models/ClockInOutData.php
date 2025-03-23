@@ -24,6 +24,7 @@ class ClockInOutData extends Model
         'Early',
         'Work_Time',
         'Department',
+        'Entry_Number',
     ];
 
     // Disable timestamps if you don't need them (optional)

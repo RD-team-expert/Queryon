@@ -48,26 +48,44 @@ class ClockInOutController extends Controller
     $csvPath = storage_path('app/temp_file.csv'); // Temporary CSV file path.
     Log::info('Temporary CSV file path set', ['csvPath' => $csvPath]);
 
-    // --- Step 1: Convert XLS to CSV via ConvertApi using the URL directly ---
-    Log::info('Starting XLS to CSV conversion via ConvertApi using URL');
+    // --- Step 1: Download and convert XLS to CSV using PhpSpreadsheet ---
+    Log::info('Starting XLS to CSV conversion using PhpSpreadsheet');
     try {
-        // Set API credentials for ConvertApi
-        ConvertApi::setApiCredentials('secret_ThRmzEB7TmkhGlgK');
-        Log::info('ConvertApi credentials set');
+        // Download the XLS file
+        $response = Http::get($xlsUrl);
+        if ($response->failed()) {
+            Log::error('Failed to download XLS file', ['url' => $xlsUrl]);
+            return response()->json(['error' => 'Failed to download XLS file'], 500);
+        }
 
-        // Convert the XLS file to CSV by providing the URL directly
-        $result = ConvertApi::convert('csv', [
-            'File'     => $xlsUrl,
-            'FileName' => 'temp_file',
-        ], 'xls');
-        Log::info('Conversion API call successful');
+        // Save the XLS file temporarily
+        $xlsPath = storage_path('app/temp_file.xls');
+        file_put_contents($xlsPath, $response->body());
+        Log::info('XLS file downloaded', ['path' => $xlsPath]);
 
-        // Save the converted CSV file to the app storage directory
-        $result->saveFiles(storage_path('app'));
-        Log::info('Converted CSV file saved', ['csvPath' => $csvPath]);
+        // Load the XLS file with PhpSpreadsheet
+        $spreadsheet = IOFactory::load($xlsPath);
+        Log::info('XLS file loaded with PhpSpreadsheet');
+
+        // Create CSV Writer
+        $writer = new Csv($spreadsheet);
+        $writer->setDelimiter(',');
+        $writer->setEnclosure('"');
+        $writer->setLineEnding("\r\n");
+        $writer->setSheetIndex(0);
+
+        // Save as CSV
+        $writer->save($csvPath);
+        Log::info('XLS converted to CSV', ['csvPath' => $csvPath]);
+
+        // Remove temporary XLS file
+        if (File::exists($xlsPath)) {
+            File::delete($xlsPath);
+            Log::info('Temporary XLS file deleted', ['xlsPath' => $xlsPath]);
+        }
     } catch (\Exception $e) {
-        Log::error('Error during conversion API call', ['exception' => $e->getMessage()]);
-        return response()->json(['error' => 'Conversion API call failed', 'details' => $e->getMessage()], 500);
+        Log::error('Error during XLS to CSV conversion', ['exception' => $e->getMessage()]);
+        return response()->json(['error' => 'Conversion failed', 'details' => $e->getMessage()], 500);
     }
 
     // --- Step 2: Read CSV Data and Skip Header ---
@@ -115,6 +133,7 @@ class ClockInOutController extends Controller
                 'Early'      => $row[8] ?? null,
                 'Work_Time'  => $row[9] ?? null,
                 'Department' => $row[10] ?? null,
+                'Entry_Number' => $jsonData['Entry']['Number'] ?? null,
             ]);
             Log::info("Record created for row $index", ['row' => $row]);
         } catch (\Exception $e) {
@@ -134,7 +153,124 @@ class ClockInOutController extends Controller
 
 }
 
+/**
+     * Delete all records with a specific Entry_Number
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function deleteByEntryNumber(Request $request)
+    {
+        Log::info('deleteByEntryNumber method called');
 
+        // Receive and decode the JSON data from the POST request
+        Log::info('Validating JSON payload');
+        $jsonData = $request->json()->all();
+        Log::info('Received JSON data', ['data' => $jsonData]);
+
+        // Ensure the Entry data exists
+        if (!isset($jsonData['Entry']) || !isset($jsonData['Entry']['Number'])) {
+            Log::error('No Entry Number provided in JSON');
+            return response()->json(['error' => 'No Entry Number provided'], 400);
+        }
+
+        // Extract Entry Number from the decoded data
+        $entryNumber = $jsonData['Entry']['Number'];
+        Log::info('Extracted Entry Number', ['Entry_Number' => $entryNumber]);
+
+        try {
+            // Count records before deletion for reporting
+            $recordCount = ClockInOutData::where('Entry_Number', $entryNumber)->count();
+            Log::info('Found records to delete', ['Entry_Number' => $entryNumber, 'count' => $recordCount]);
+
+            if ($recordCount === 0) {
+                Log::info('No records found with Entry_Number', ['Entry_Number' => $entryNumber]);
+                return response()->json([
+                    'message' => 'No records found with the specified Entry_Number',
+                    'Entry_Number' => $entryNumber
+                ], 404);
+            }
+
+            // Get record IDs for logging before deletion
+            $recordIds = ClockInOutData::where('Entry_Number', $entryNumber)->pluck('id')->toArray();
+            Log::info('Records to be deleted', ['record_ids' => $recordIds]);
+
+            // Delete all records with the specified Entry_Number
+            ClockInOutData::where('Entry_Number', $entryNumber)->delete();
+
+            Log::info('Records deleted successfully', [
+                'Entry_Number' => $entryNumber,
+                'deleted_count' => $recordCount,
+                'deleted_record_ids' => $recordIds
+            ]);
+
+            return response()->json([
+                'message' => 'Records deleted successfully',
+                'Entry_Number' => $entryNumber,
+                'deleted_count' => $recordCount
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to delete records', [
+                'Entry_Number' => $entryNumber,
+                'exception' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'error' => 'Failed to delete records',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+    /**
+     * Update all records with a specific Entry_Number
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function updateByEntryNumber(Request $request)
+    {
+        Log::info('updateByEntryNumber method called');
+        // Receive and decode the JSON data from the POST request
+        Log::info('Validating JSON payload');
+        $jsonData = $request->json()->all();
+        Log::info('Received JSON data', ['data' => $jsonData]);
+        // Ensure the Entry data exists
+        if (!isset($jsonData['Entry']) || !isset($jsonData['Entry']['Number'])) {
+            Log::error('No Entry Number provided in JSON');
+            return response()->json(['error' => 'No Entry Number provided'], 400);
+        }
+        // Extract Entry Number from the decoded data
+        $entryNumber = $jsonData['Entry']['Number'];
+        Log::info('Extracted Entry Number', ['Entry_Number' => $entryNumber]);
+
+        try {
+            // First delete existing records
+            $deleteResult = $this->deleteByEntryNumber($request);
+
+            // Check if deletion was successful or if there were no records to delete
+            if ($deleteResult->getStatusCode() !== 200 && $deleteResult->getStatusCode() !== 404) {
+                // If deletion failed with an error other than "not found", return the error
+                return $deleteResult;
+            }
+
+            // Then create new records
+            return $this->Index($request);
+        } catch (\Exception $e) {
+            Log::error('Failed to update records', [
+                'Entry_Number' => $entryNumber,
+                'exception' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'error' => 'Failed to update records',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
 
 }
 

@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('Early')->nullable(); // Early
             $table->string('Work_Time')->nullable(); // Work Time
             $table->string('Department')->nullable(); // Department
+            $table->integer('Entry_Number')->nullable();
             $table->timestamps(); // created_at and updated_at columns
         });
     }
