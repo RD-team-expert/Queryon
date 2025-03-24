@@ -18,7 +18,7 @@ use App\Http\Controllers\ClockInOutController;
 
 
 
-
+/**************************  NVT  **********************/
 
 //********** Employees Data Form **************//
 //create
@@ -114,4 +114,23 @@ Route::get('/export-clock-in-out/data', [Export_ClockInOutController::class, 'ge
 ->middleware(CheckSecretHeader::class);
 // Route to export Clock In/Out data as downloadable CSV
 Route::get('/export-clock-in-out/export', [Export_ClockInOutController::class, 'export'])
+->middleware(CheckSecretHeader::class);
+
+
+
+/**************************  PIZZA  **********************/
+
+/****LITTLECAESARSHRDEPARTMENT*****/
+/****LITTLECAESARSHRDEPARTMENT*****/
+Route::post('/pizza/littlecaesars/create', [App\Http\Controllers\Pizza\LittleCaesarsHrDepartmentController::class, 'store']);
+Route::post('/pizza/littlecaesars/update', [App\Http\Controllers\Pizza\LittleCaesarsHrDepartmentController::class, 'update']);
+Route::post('/pizza/littlecaesars/delete', [App\Http\Controllers\Pizza\LittleCaesarsHrDepartmentController::class, 'destroy']);
+
+
+// Export routes
+Route::get('/pizza/littlecaesars/excel', [App\Http\Controllers\Pizza\ExportLittleCaesarsHrDepartmentController::class, 'exportToExcel'])
+->middleware(CheckSecretHeader::class);
+Route::get('/pizza/littlecaesars/data', [App\Http\Controllers\Pizza\ExportLittleCaesarsHrDepartmentController::class, 'getData'])
+->middleware(CheckSecretHeader::class);
+Route::get('/pizza/littlecaesars/export', [App\Http\Controllers\Pizza\ExportLittleCaesarsHrDepartmentController::class, 'export'])
 ->middleware(CheckSecretHeader::class);
