@@ -6,14 +6,14 @@ use App\Http\Controllers\ExportEMPDataController;
 use App\Http\Controllers\ExportRDODataController;
 use App\Http\Controllers\Export_Late_Early_Controller;
 use App\Http\Controllers\ExportCapsDataController;
-
+use App\Http\Controllers\Export_ClockInOutController;
 
 use App\Http\Controllers\CapsController;
 use App\Http\Controllers\EmployeesDataController;
 use App\Http\Controllers\RDO_Data_Controller;
 use App\Http\Controllers\LateEarlyController;
-
 use App\Http\Controllers\ClockInOutController;
+
 
 
 
@@ -99,11 +99,19 @@ Route::get('/export-caps-data/export', [ExportCapsDataController::class, 'export
 //********clock in out excel data */
 
 
-
+/*************Clock in out data */
 // Webhook route to handle incoming JSON data
 Route::post('/webhook', [ClockInOutController::class, 'Index']);
-
-// Route to delete records by Entry_Number
+Route::post('/clock-in-out/update-by-entry', [ClockInOutController::class, 'updateByEntryNumber']);
 Route::post('/clock-in-out/delete-by-entry', [ClockInOutController::class, 'deleteByEntryNumber']);
 
-Route::post('/clock-in-out/update-by-entry', [ClockInOutController::class, 'updateByEntryNumber']);
+//export clock in out data
+// Route to export Clock In/Out data as CSV for Excel
+Route::get('/export-clock-in-out/excel', [Export_ClockInOutController::class, 'exportToExcel'])
+->middleware(CheckSecretHeader::class);
+// Route to return all Clock In/Out data as JSON
+Route::get('/export-clock-in-out/data', [Export_ClockInOutController::class, 'getData'])
+->middleware(CheckSecretHeader::class);
+// Route to export Clock In/Out data as downloadable CSV
+Route::get('/export-clock-in-out/export', [Export_ClockInOutController::class, 'export'])
+->middleware(CheckSecretHeader::class);
