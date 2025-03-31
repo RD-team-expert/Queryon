@@ -58,7 +58,6 @@ Route::get('/rdo_data/data', [ExportRDODataController::class, 'getData'])
 Route::get('/rdo_data/export', [ExportRDODataController::class, 'export'])
 ->middleware(CheckSecretHeader::class);
 
-
 //********** Late_Early Data Form **************//
 Route::post('/store-late-early', [LateEarlyController::class, 'store']);
 Route::post('/update-late-early', [LateEarlyController::class, 'update']);

@@ -18,6 +18,9 @@ class LittleCaesarsHrDepartmentData extends Model
         'HookStore',
         'Hookالمتجر',
         'HookAlmacenar',
+        'EN_Form_Type',
+        'AR_Form_Type',
+        'Sp_Form_Type',
         'EntryNum',
         'DateSubmitted',
     ];

@@ -17,6 +17,9 @@ return new class extends Migration
             $table->string('HookStore')->nullable();
             $table->string('Hookالمتجر')->nullable();
             $table->string('HookAlmacenar')->nullable();
+            $table->string('HookSelectYourRequestType')->nullable();
+            $table->string('Hookماهونوعطلبك": "✅ الشكاوى أو الملاحظات')->nullable();
+            $table->string('HookSeleccioneSuTipoDeSolicitud')->nullable();
             $table->integer('EntryNum')->nullable();
             $table->date('DateSubmitted')->nullable();
             $table->timestamps();

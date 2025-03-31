@@ -27,6 +27,9 @@ class LittleCaesarsHrDepartmentController extends Controller
             'HookStore' => $data['HookMain']['HookEnglish']['HookStore']['Label'] ?? null,
             'Hookالمتجر' => $data['HookMain']['HookArabic']['Hookالمتجر']['Label'] ?? null,
             'HookAlmacenar' => $data['HookMain']['HookEspañol']['HookAlmacenar']['Label'] ?? null,
+            'EN_Form_Type'=> $data['HookMain']['HookEnglish']['HookSelectYourRequestType'] ?? null,
+            'AR_Form_Type'=>$data['HookMain']['HookEnglish']['Hookماهونوعطلبك": "✅ الشكاوى أو الملاحظات'] ?? null,
+            'Sp_Form_Type'=>$data['HookMain']['HookEnglish']['HookSeleccioneSuTipoDeSolicitud'] ?? null,
             'EntryNum' => $data['Entry']['Number'] ?? null,
             'DateSubmitted' => $dateSubmitted,
         ]);
@@ -59,6 +62,9 @@ class LittleCaesarsHrDepartmentController extends Controller
             'HookStore' => $data['HookMain']['HookEnglish']['HookStore']['Label'] ?? null,
             'Hookالمتجر' => $data['HookMain']['HookArabic']['Hookالمتجر']['Label'] ?? null,
             'HookAlmacenar' => $data['HookMain']['HookEspañol']['HookAlmacenar']['Label'] ?? null,
+            'EN_Form_Type'=> $data['HookMain']['HookEnglish']['HookSelectYourRequestType'] ?? null,
+            'AR_Form_Type'=>$data['HookMain']['HookEnglish']['Hookماهونوعطلبك": "✅ الشكاوى أو الملاحظات'] ?? null,
+            'Sp_Form_Type'=>$data['HookMain']['HookEnglish']['HookSeleccioneSuTipoDeSolicitud'] ?? null,
             'EntryNum' => $data['Entry']['Number'] ?? null,
             'DateSubmitted' => $dateSubmitted,
         ]);
