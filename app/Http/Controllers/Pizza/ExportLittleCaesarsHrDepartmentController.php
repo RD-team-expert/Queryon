@@ -30,6 +30,8 @@ class ExportLittleCaesarsHrDepartmentController extends Controller
             'DateSubmitted',
             'created_at',
             'updated_at'
+
+
         ];
 
         // Open a memory stream
