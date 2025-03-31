@@ -18,9 +18,9 @@ class LittleCaesarsHrDepartmentData extends Model
         'HookStore',
         'Hookالمتجر',
         'HookAlmacenar',
-        'EN_Form_Type',
-        'AR_Form_Type',
-        'Sp_Form_Type',
+        'HookSelectYourRequestType',
+        'Hookماهونوعطلبك": "✅ الشكاوى أو الملاحظات',
+        'HookSeleccioneSuTipoDeSolicitud',
         'EntryNum',
         'DateSubmitted',
     ];
