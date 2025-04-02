@@ -13,7 +13,7 @@ use App\Http\Controllers\EmployeesDataController;
 use App\Http\Controllers\RDO_Data_Controller;
 use App\Http\Controllers\LateEarlyController;
 use App\Http\Controllers\ClockInOutController;
-
+use App\Http\Controllers\Pizza\DepositDeliveryDataController;
 
 
 
@@ -133,3 +133,12 @@ Route::get('/pizza/littlecaesars/data', [App\Http\Controllers\Pizza\ExportLittle
 ->middleware(CheckSecretHeader::class);
 Route::get('/pizza/littlecaesars/export', [App\Http\Controllers\Pizza\ExportLittleCaesarsHrDepartmentController::class, 'export'])
 ->middleware(CheckSecretHeader::class);
+
+
+/************* deposit delivery ************/
+
+
+Route::post('pizza/deposit-delivery-data', [DepositDeliveryDataController::class, 'create']);
+// Add these routes for DepositDeliveryData
+Route::post('/deposit-delivery/update', [App\Http\Controllers\Pizza\DepositDeliveryDataController::class, 'update']);
+Route::post('/deposit-delivery/delete', [App\Http\Controllers\Pizza\DepositDeliveryDataController::class, 'destroy']);
