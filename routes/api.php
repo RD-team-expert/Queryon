@@ -15,7 +15,7 @@ use App\Http\Controllers\LateEarlyController;
 use App\Http\Controllers\ClockInOutController;
 use App\Http\Controllers\Pizza\DepositDeliveryDataController;
 
-
+use App\Http\Controllers\ExportController;
 
 
 /**************************  NVT  **********************/
@@ -142,3 +142,8 @@ Route::post('pizza/deposit-delivery-data', [DepositDeliveryDataController::class
 // Add these routes for DepositDeliveryData
 Route::post('/deposit-delivery/update', [App\Http\Controllers\Pizza\DepositDeliveryDataController::class, 'update']);
 Route::post('/deposit-delivery/delete', [App\Http\Controllers\Pizza\DepositDeliveryDataController::class, 'destroy']);
+
+//*************** */
+Route::get('/export-final-summary/{start_date?}/{end_date?}/{franchise_store?}', [ExportController::class, 'exportFinalSummary']);
+Route::get('/final-summary-json/{start_date?}/{end_date?}/{franchise_store?}', [ExportController::class, 'getFinalSummaryJson']);
+Route::get('/final-summary-csv/{start_date?}/{end_date?}/{franchise_store?}', [ExportController::class, 'exportFinalSummaryCsv']);

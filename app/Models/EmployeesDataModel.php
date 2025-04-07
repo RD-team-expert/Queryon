@@ -23,6 +23,7 @@ class EmployeesDataModel extends Model
         'personal_email',
         'sy_phone',
         'us_phone',
+        'CLockInOutID',
         'img_link',
         'about_you',
         'password2',

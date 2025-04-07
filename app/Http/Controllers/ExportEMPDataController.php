@@ -29,6 +29,7 @@ class ExportEMPDataController extends Controller
             'personal_email',
             'sy_phone',
             'us_phone',
+            'CLockInOutID',
             'img_link',
             'about_you',
             'password2',
@@ -107,6 +108,7 @@ class ExportEMPDataController extends Controller
     $data = EmployeesDataModel::all();
 
     // Define the columns to export (all fields)
+    // In both exportToExcel() and export() methods, add 'CLockInOutID' to the $columns array:
     $columns = [
         'id',
         'first_name_english',
@@ -120,6 +122,7 @@ class ExportEMPDataController extends Controller
         'personal_email',
         'sy_phone',
         'us_phone',
+        'CLockInOutID',
         'img_link',
         'about_you',
         'password2',
