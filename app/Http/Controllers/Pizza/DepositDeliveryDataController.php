@@ -33,16 +33,15 @@ class DepositDeliveryDataController extends Controller
 
         // 🔹 Basic Info
         $storeNumber    = data_get($json, 'HookStoreNum');
-        $todayIs        = data_get($json, 'HookTodayIs');
         $workDate       = data_get($json, 'HookWorkDaysDate');
 
         // 🔹 Safe Info - Check if these paths exist in your JSON
-        $totalChange    = data_get($json, 'HookAssigningSafe.HookTotalChange', null);
-        $amountInSafe   = data_get($json, 'HookAssigningSafe.HookAmountInSafe', null);
-        $tipsAmount     = data_get($json, 'HookAssigningSafe.HookHowMuchTips', null);
+        $totalChange    = data_get($json, 'HookDepositProcess.HookTotalChange', null);
+        $amountInSafe   = data_get($json, 'HookDepositProcess.HookAmountInSafe', null);
+        $tipsAmount     = data_get($json, 'HookDepositProcess.HookHowMuchTips', null);
 
         // 🔹 Deposit Info
-        $depositAmount  = data_get($json, 'HookDepositProcess.HookDepositAmount', null);
+        $depositAmount  = data_get($json, 'HookDepositProcess.HookCashDeposit', null);
 
         // Log the extracted data for debugging
         Log::debug('Extracted data from JSON', [
@@ -106,7 +105,7 @@ class DepositDeliveryDataController extends Controller
         try {
             $record = DepositDeliveryData::create([
                 'HookStoreNum' => $storeNumber,
-                'HookTodayIs' => $todayIs,
+
                 'HookWorkDaysDate' => $workDate,
                 'HookTotalChange' => $totalChange,
                 'HookAmountInSafe' => $amountInSafe,
@@ -232,13 +231,13 @@ class DepositDeliveryDataController extends Controller
         // Extract data from JSON
         // 🔹 Basic Info
         $storeNumber    = data_get($json, 'HookStoreNum');
-        $todayIs        = data_get($json, 'HookTodayIs');
+
         $workDate       = data_get($json, 'HookWorkDaysDate');
 
-        // 🔹 Safe Info
-        $totalChange    = data_get($json, 'HookAssigningSafe.HookTotalChange', null);
-        $amountInSafe   = data_get($json, 'HookAssigningSafe.HookAmountInSafe', null);
-        $tipsAmount     = data_get($json, 'HookAssigningSafe.HookHowMuchTips', null);
+        // 🔹 Safe Info - Check if these paths exist in your JSON
+        $totalChange    = data_get($json, 'HookDepositProcess.HookTotalChange', null);
+        $amountInSafe   = data_get($json, 'HookDepositProcess.HookAmountInSafe', null);
+        $tipsAmount     = data_get($json, 'HookDepositProcess.HookHowMuchTips', null);
 
         // 🔹 Deposit Info
         $depositAmount  = data_get($json, 'HookDepositProcess.HookDepositAmount', null);
@@ -293,7 +292,7 @@ class DepositDeliveryDataController extends Controller
         // Prepare update data
         $updateData = [
             'HookStoreNum' => $storeNumber,
-            'HookTodayIs' => $todayIs,
+
             'HookWorkDaysDate' => $workDate,
             'HookTotalChange' => $totalChange,
             'HookAmountInSafe' => $amountInSafe,

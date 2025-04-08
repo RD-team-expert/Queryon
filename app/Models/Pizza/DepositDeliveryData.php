@@ -13,12 +13,12 @@ class DepositDeliveryData extends Model
 
     protected $fillable = [
         'HookStoreNum',
-        'HookTodayIs',
         'HookWorkDaysDate',
         'HookTotalChange',
         'HookAmountInSafe',
         'HookHowMuchTips',
         'HookDepositAmount',
+
         'Hook_MostLovedRestaurant',
         'Hook_OptimizationScore',
         'Hook_RatingsAverageRating',

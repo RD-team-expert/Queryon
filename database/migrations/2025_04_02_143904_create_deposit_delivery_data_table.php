@@ -9,13 +9,14 @@ class CreateDepositDeliveryDataTable extends Migration
     {
         Schema::create('deposit_delivery_data', function (Blueprint $table) {
             $table->id();
+            //daily deposit change and tips
             $table->integer('HookStoreNum')->nullable();
-            $table->string('HookTodayIs')->nullable();
             $table->date('HookWorkDaysDate')->nullable();
             $table->decimal('HookTotalChange', 20, 2)->nullable();
             $table->decimal('HookAmountInSafe', 20, 2)->nullable();
             $table->decimal('HookHowMuchTips', 20, 2)->nullable();
             $table->decimal('HookDepositAmount', 20, 2)->nullable();
+            // delivery
             $table->string('Hook_MostLovedRestaurant')->nullable();
             $table->string('Hook_OptimizationScore')->nullable();
             $table->decimal('Hook_RatingsAverageRating', 20, 2)->nullable();
