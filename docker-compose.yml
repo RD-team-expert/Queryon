@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  # MariaDB Service
+  mariadb:
+    image: mariadb:latest
+    container_name: vuestarter_mariadb
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "${DB_PORT}:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - vuestarter_network
+
+  # phpMyAdmin Service
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: vuestarter_phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: mariadb
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: root
+    networks:
+      - vuestarter_network
+    depends_on:
+      - mariadb
+
+  # MailHog Service
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: vuestarter_mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025" # SMTP port
+      - "8025:8025" # Web UI port
+    networks:
+      - vuestarter_network
+
+networks:
+  vuestarter_network:
+    driver: bridge
+
+volumes:
+  mariadb_data:
+    driver: local
+

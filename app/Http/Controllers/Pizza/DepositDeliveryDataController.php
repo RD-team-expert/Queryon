@@ -27,29 +27,20 @@ class DepositDeliveryDataController extends Controller
         }
 
         Log::debug('Processing Deposit Delivery Data', [
-            'store' => data_get($json, 'HookStoreNum'),
+            'franchisee' => data_get($json, 'HookFranchiseeNum.Label'),
             'date' => data_get($json, 'HookWorkDaysDate')
         ]);
 
         // 🔹 Basic Info
-        $storeNumber    = data_get($json, 'HookStoreNum');
-        $workDate       = data_get($json, 'HookWorkDaysDate');
+        $franchiseeNum   = data_get($json, 'HookFranchiseeNum.Label');
+        $workDate        = data_get($json, 'HookWorkDaysDate');
 
-        // 🔹 Safe Info - Check if these paths exist in your JSON
-        $totalChange    = data_get($json, 'HookDepositProcess.HookTotalChange', null);
-        $amountInSafe   = data_get($json, 'HookDepositProcess.HookAmountInSafe', null);
-        $tipsAmount     = data_get($json, 'HookDepositProcess.HookHowMuchTips', null);
-
-        // 🔹 Deposit Info
-        $depositAmount  = data_get($json, 'HookDepositProcess.HookCashDeposit', null);
-
-        // Log the extracted data for debugging
-        Log::debug('Extracted data from JSON', [
-            'totalChange' => $totalChange,
-            'amountInSafe' => $amountInSafe,
-            'tipsAmount' => $tipsAmount,
-            'depositAmount' => $depositAmount
-        ]);
+        // 🔹 Deposit Process Info
+        $depositAmount   = data_get($json, 'HookDepositProcess.HookCashDeposit', null);
+        $tipsAmount      = data_get($json, 'HookDepositProcess.HookHowMuchTips', null);
+        $overShort       = data_get($json, 'HookDepositProcess.HookOverShort', null);
+        $altimetricWaste = data_get($json, 'HookDepositProcess.HookAltimetricWaste', null);
+        $workingHours    = data_get($json, 'HookDepositProcess.HookEmployeesWorkingHours', null);
 
         // 🔹 DoorDash Data
         $dd = data_get($json, 'Hook_Delivery.Hook_DoorDash', []);
@@ -104,13 +95,14 @@ class DepositDeliveryDataController extends Controller
         // 🔹 Create Record
         try {
             $record = DepositDeliveryData::create([
-                'HookStoreNum' => $storeNumber,
-
+                'HookFranchiseeNum' => $franchiseeNum,
                 'HookWorkDaysDate' => $workDate,
-                'HookTotalChange' => $totalChange,
-                'HookAmountInSafe' => $amountInSafe,
-                'HookHowMuchTips' => $tipsAmount,
                 'HookDepositAmount' => $depositAmount,
+                'HookHowMuchTips' => $tipsAmount,
+                'HookOverShort' => $overShort,
+                'HookAltimetricWaste' => $altimetricWaste,
+                'HookEmployeesWorkingHours' => $workingHours,
+
                 'Hook_MostLovedRestaurant' => $ddMostLoved,
                 'Hook_OptimizationScore' => $ddOptimizationScore,
                 'Hook_RatingsAverageRating' => $ddAverageRating,
@@ -157,7 +149,7 @@ class DepositDeliveryDataController extends Controller
 
             Log::info('Deposit Delivery Data stored successfully', [
                 'id' => $record->id,
-                'store' => $storeNumber,
+                'franchisee' => $franchiseeNum,
                 'date' => $workDate
             ]);
 
@@ -168,7 +160,7 @@ class DepositDeliveryDataController extends Controller
             ]);
         } catch (\Exception $e) {
             Log::error('Failed to store Deposit Delivery Data', [
-                'store' => $storeNumber,
+                'franchisee' => $franchiseeNum,
                 'date' => $workDate,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
@@ -224,23 +216,21 @@ class DepositDeliveryDataController extends Controller
 
         Log::debug('Processing Deposit Delivery Data update', [
             'entry_number' => $entryNumber,
-            'store' => data_get($json, 'HookStoreNum'),
+            'franchisee' => data_get($json, 'HookFranchiseeNum.Label'),
             'date' => data_get($json, 'HookWorkDaysDate')
         ]);
 
         // Extract data from JSON
         // 🔹 Basic Info
-        $storeNumber    = data_get($json, 'HookStoreNum');
+        $franchiseeNum   = data_get($json, 'HookFranchiseeNum.Label');
+        $workDate        = data_get($json, 'HookWorkDaysDate');
 
-        $workDate       = data_get($json, 'HookWorkDaysDate');
-
-        // 🔹 Safe Info - Check if these paths exist in your JSON
-        $totalChange    = data_get($json, 'HookDepositProcess.HookTotalChange', null);
-        $amountInSafe   = data_get($json, 'HookDepositProcess.HookAmountInSafe', null);
-        $tipsAmount     = data_get($json, 'HookDepositProcess.HookHowMuchTips', null);
-
-        // 🔹 Deposit Info
-        $depositAmount  = data_get($json, 'HookDepositProcess.HookDepositAmount', null);
+        // 🔹 Deposit Process Info
+        $depositAmount   = data_get($json, 'HookDepositProcess.HookCashDeposit', null);
+        $tipsAmount      = data_get($json, 'HookDepositProcess.HookHowMuchTips', null);
+        $overShort       = data_get($json, 'HookDepositProcess.HookOverShort', null);
+        $altimetricWaste = data_get($json, 'HookDepositProcess.HookAltimetricWaste', null);
+        $workingHours    = data_get($json, 'HookDepositProcess.HookEmployeesWorkingHours', null);
 
         // 🔹 DoorDash Data
         $dd = data_get($json, 'Hook_Delivery.Hook_DoorDash', []);
@@ -291,13 +281,14 @@ class DepositDeliveryDataController extends Controller
 
         // Prepare update data
         $updateData = [
-            'HookStoreNum' => $storeNumber,
-
+            'HookFranchiseeNum' => $franchiseeNum,
             'HookWorkDaysDate' => $workDate,
-            'HookTotalChange' => $totalChange,
-            'HookAmountInSafe' => $amountInSafe,
-            'HookHowMuchTips' => $tipsAmount,
             'HookDepositAmount' => $depositAmount,
+            'HookHowMuchTips' => $tipsAmount,
+            'HookOverShort' => $overShort,
+            'HookAltimetricWaste' => $altimetricWaste,
+            'HookEmployeesWorkingHours' => $workingHours,
+
             'Hook_MostLovedRestaurant' => $ddMostLoved,
             'Hook_OptimizationScore' => $ddOptimizationScore,
             'Hook_RatingsAverageRating' => $ddAverageRating,
@@ -346,7 +337,7 @@ class DepositDeliveryDataController extends Controller
             Log::info('Deposit Delivery Data updated successfully', [
                 'id' => $record->id,
                 'entry_number' => $entryNumber,
-                'store' => $storeNumber,
+                'franchisee' => $franchiseeNum,
                 'date' => $workDate
             ]);
 
@@ -358,7 +349,7 @@ class DepositDeliveryDataController extends Controller
         } catch (\Exception $e) {
             Log::error('Failed to update Deposit Delivery Data', [
                 'entry_number' => $entryNumber,
-                'store' => $storeNumber,
+                'franchisee' => $franchiseeNum,
                 'date' => $workDate,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
@@ -417,7 +408,7 @@ class DepositDeliveryDataController extends Controller
             $recordInfo = [
                 'id' => $record->id,
                 'entry_number' => $record->Entry_Number,
-                'store' => $record->HookStoreNum,
+                'franchisee' => $record->HookFranchiseeNum,
                 'date' => $record->HookWorkDaysDate
             ];
 

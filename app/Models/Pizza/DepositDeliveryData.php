@@ -12,12 +12,13 @@ class DepositDeliveryData extends Model
     protected $table = 'deposit_delivery_data';
 
     protected $fillable = [
-        'HookStoreNum',
+        'HookFranchiseeNum',
         'HookWorkDaysDate',
-        'HookTotalChange',
-        'HookAmountInSafe',
-        'HookHowMuchTips',
         'HookDepositAmount',
+        'HookHowMuchTips',
+        'HookOverShort',
+        'HookAltimetricWaste',
+        'HookEmployeesWorkingHours',
 
         'Hook_MostLovedRestaurant',
         'Hook_OptimizationScore',

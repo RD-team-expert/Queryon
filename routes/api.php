@@ -143,6 +143,14 @@ Route::post('pizza/deposit-delivery-data', [DepositDeliveryDataController::class
 Route::post('/deposit-delivery/update', [App\Http\Controllers\Pizza\DepositDeliveryDataController::class, 'update']);
 Route::post('/deposit-delivery/delete', [App\Http\Controllers\Pizza\DepositDeliveryDataController::class, 'destroy']);
 
+// Deposit Delivery Data Export Routes
+Route::get('/pizza/deposit-delivery/export-excel', [App\Http\Controllers\Pizza\DepositDeliveryController::class, 'exportToExcel']);
+Route::get('/pizza/deposit-delivery/get-data', [App\Http\Controllers\Pizza\DepositDeliveryController::class, 'getData']);
+Route::get('/pizza/deposit-delivery/export', [App\Http\Controllers\Pizza\DepositDeliveryController::class, 'export']);
+
+
+
+
 //*************** */
 Route::get('/export-final-summary/{start_date?}/{end_date?}/{franchise_store?}', [ExportController::class, 'exportFinalSummary']);
 Route::get('/final-summary-json/{start_date?}/{end_date?}/{franchise_store?}', [ExportController::class, 'getFinalSummaryJson']);
