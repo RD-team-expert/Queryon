@@ -12,7 +12,7 @@ class DepositDeliveryData extends Model
     protected $table = 'deposit_delivery_data';
 
     protected $fillable = [
-        'HookFranchiseeNum',
+        'HookFranchiseeNum' ,
         'HookWorkDaysDate',
         'HookDepositAmount',
         'HookHowMuchTips',
