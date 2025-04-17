@@ -118,8 +118,18 @@ class ClockInOutController extends Controller
 
     // --- Step 4: Save Data to the Database ---
     Log::info('Saving CSV data to the database', ['record_count' => count($csvRows)]);
+    $insertedCount = 0;
+    $skippedCount = 0;
+
     foreach ($csvRows as $index => $row) {
         try {
+            // Check if Clock_In data exists and is not empty
+            if (empty($row[5])) {
+                Log::info("Skipping row $index - Clock_In is empty", ['row' => $row]);
+                $skippedCount++;
+                continue; // Skip this row
+            }
+
             // Use ClockInOutData model instead of Record
             ClockInOutData::create([
                 'AC_No'      => $row[0] ?? null,
@@ -136,21 +146,22 @@ class ClockInOutController extends Controller
                 'Entry_Number' => $jsonData['Entry']['Number'] ?? null,
             ]);
             Log::info("Record created for row $index", ['row' => $row]);
+            $insertedCount++;
         } catch (\Exception $e) {
             Log::error("Failed to create record for row $index", ['row' => $row, 'exception' => $e->getMessage()]);
         }
     }
 
-    Log::info('Data processed successfully, returning JSON response');
-    return response()->json([
-        'message'      => 'Data processed successfully',
-        'record_count' => count($csvRows)
+    Log::info('Data processed successfully, returning JSON response', [
+        'inserted_count' => $insertedCount,
+        'skipped_count' => $skippedCount
     ]);
 
-
-
-
-
+    return response()->json([
+        'message'      => 'Data processed successfully',
+        'record_count' => $insertedCount,
+        'skipped_count' => $skippedCount
+    ]);
 }
 
 /**
