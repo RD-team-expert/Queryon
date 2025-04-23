@@ -227,50 +227,77 @@ class DepositDeliveryController extends Controller
      */
     public function export(Request $request, $startDateParam = null, $endDateParam = null, $franchiseeNumParam = null)
     {
-        Log::info('Deposit Delivery Data CSV export requested', [
-            'ip' => $request->ip(),
-            'user_agent' => $request->header('User-Agent')
-        ]);
-
-        // Get parameters from either URL segments or query parameters
-        $startDate = $startDateParam ?? $request->query('start_date');
-        $endDate = $endDateParam ?? $request->query('end_date');
-        $franchiseeNum = $franchiseeNumParam ?? $request->query('franchisee_num');
-
-        Log::debug('CSV Export parameters', [
-            'start_date' => $startDate,
-            'end_date' => $endDate,
-            'franchisee_num' => $franchiseeNum,
-            'raw_query' => $request->getQueryString(),
-            'route_params' => [$startDateParam, $endDateParam, $franchiseeNumParam]
-        ]);
-
-        // Start with a base query
-        $query = DepositDeliveryData::query();
-
-        // Apply date range filter if provided
-        if ($startDate && $endDate) {
-            $query->whereBetween('HookWorkDaysDate', [$startDate, $endDate]);
-            Log::debug('Filtering by date range', [
-                'start_date' => $startDate,
-                'end_date' => $endDate
-            ]);
-        } else if ($startDate) {
-            $query->where('HookWorkDaysDate', '>=', $startDate);
-            Log::debug('Filtering by start date only', ['start_date' => $startDate]);
-        } else if ($endDate) {
-            $query->where('HookWorkDaysDate', '<=', $endDate);
-            Log::debug('Filtering by end date only', ['end_date' => $endDate]);
-        }
-
-        // Apply franchisee number filter if provided
-        if ($franchiseeNum) {
-            // Convert to string to ensure proper comparison
-            $query->where('HookFranchiseeNum', (string)$franchiseeNum);
-            Log::debug('Filtering by franchisee number', ['franchisee_num' => $franchiseeNum]);
-        }
-
         try {
+            Log::info('Deposit Delivery Data CSV export requested', [
+                'ip' => $request->ip(),
+                'user_agent' => $request->header('User-Agent')
+            ]);
+
+            // Get parameters from either URL segments or query parameters
+            $startDate = $startDateParam ?? $request->query('start_date');
+            $endDate = $endDateParam ?? $request->query('end_date');
+
+            // Handle franchisee numbers as a comma-separated list
+            $franchiseeNums = [];
+
+            // First check if it was passed as a route parameter
+            if (!empty($franchiseeNumParam)) {
+                $franchiseeNums = array_map('trim', explode(',', $franchiseeNumParam));
+            } else {
+                // Try franchisee_num parameter from query
+                $franchiseeNumString = $request->query('franchisee_num');
+                if (!empty($franchiseeNumString)) {
+                    // Check if it's a comma-separated string
+                    if (strpos($franchiseeNumString, ',') !== false) {
+                        $franchiseeNums = array_map('trim', explode(',', $franchiseeNumString));
+                    } else {
+                        $franchiseeNums = [$franchiseeNumString];
+                    }
+                }
+            }
+
+            // Filter out empty values
+            $franchiseeNums = array_filter($franchiseeNums, function($value) {
+                return !empty($value) && $value !== 'null' && $value !== 'undefined';
+            });
+
+            // For backward compatibility with the filename generation
+            $franchiseeNum = !empty($franchiseeNums) ? implode(',', $franchiseeNums) : null;
+
+            Log::debug('CSV Export parameters', [
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'franchisee_nums' => $franchiseeNums,
+                'raw_query' => $request->getQueryString(),
+                'route_params' => [$startDateParam, $endDateParam, $franchiseeNumParam]
+            ]);
+
+            // Start with a base query
+            $query = DepositDeliveryData::query();
+
+            // Apply date range filter if provided
+            if ($startDate && $endDate) {
+                $query->whereBetween('HookWorkDaysDate', [$startDate, $endDate]);
+                Log::debug('Filtering by date range', [
+                    'start_date' => $startDate,
+                    'end_date' => $endDate
+                ]);
+            } else if ($startDate) {
+                $query->where('HookWorkDaysDate', '>=', $startDate);
+                Log::debug('Filtering by start date only', ['start_date' => $startDate]);
+            } else if ($endDate) {
+                $query->where('HookWorkDaysDate', '<=', $endDate);
+                Log::debug('Filtering by end date only', ['end_date' => $endDate]);
+            }
+
+            // Apply franchisee number filter if provided
+            if (!empty($franchiseeNums)) {
+                // Convert all values to strings to ensure proper comparison
+                $franchiseeNums = array_map('strval', $franchiseeNums);
+                $query->whereIn('HookFranchiseeNum', $franchiseeNums);
+                Log::debug('Filtering by franchisee numbers', ['franchisee_nums' => $franchiseeNums]);
+            }
+
             // Execute the query
             $data = $query->get();
 
@@ -278,7 +305,7 @@ class DepositDeliveryController extends Controller
             Log::info('Deposit Delivery Data CSV retrieved successfully', [
                 'record_count' => $recordCount,
                 'date_range' => $startDate && $endDate ? "$startDate to $endDate" : 'all dates',
-                'franchisee_num' => $franchiseeNum ?: 'all franchisees'
+                'franchisee_nums' => !empty($franchiseeNums) ? implode(', ', $franchiseeNums) : 'all franchisees'
             ]);
 
             // Define the columns to export with custom names
@@ -381,10 +408,13 @@ class DepositDeliveryController extends Controller
                 'Access-Control-Allow-Methods' => 'GET',
                 'Access-Control-Allow-Headers' => 'Content-Type'
             ]);
+
         } catch (\Exception $e) {
             Log::error('Error exporting Deposit Delivery Data CSV', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
+                'query' => isset($query) ? $query->toSql() : 'Query not initialized',
+                'bindings' => isset($query) ? $query->getBindings() : []
             ]);
 
             return response()->json([
