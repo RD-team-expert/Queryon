@@ -4,11 +4,19 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\RDO_Data_Model;
+use Illuminate\Support\Facades\Log;
 
 class RDO_Data_Controller extends Controller
 {
     public function create(Request $request)
     {
+        // Log the incoming request data
+        \Illuminate\Support\Facades\Log::info('RDO data creation request received', [
+            'ip' => $request->ip(),
+            'user_agent' => $request->header('User-Agent'),
+            'payload' => json_decode($request->getContent(), true)
+        ]);
+
         // Decode the JSON payload into an associative array
         $data = json_decode($request->getContent(), true);
 
@@ -58,13 +66,19 @@ class RDO_Data_Controller extends Controller
             'Entry_Number' => isset($entry['Number']) ? (string)$entry['Number'] : null,
         ]);
 
+        // Log successful creation
+        \Illuminate\Support\Facades\Log::info('RDO data created successfully', [
+            'entry_number' => $rdoData->Entry_Number,
+            'id' => $rdoData->id
+        ]);
+
         return response()->json([
             'message' => 'RDO data created successfully',
             'data'    => $rdoData
         ], 201);
     }
 
- 
+
     public function destroy(Request $request)
     {
         // Decode the JSON payload into an associative array
