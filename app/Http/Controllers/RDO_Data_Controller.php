@@ -34,7 +34,7 @@ class RDO_Data_Controller extends Controller
             'HookEndDate'   => $hookMain['HookEndDate'] ?? null,
             'HookDepartment_ID' => $hookDepartment['Id'] ?? null,
             'HookDepartment_Lable' => $hookDepartment['Label'] ?? null,
-            'HookHowManyDaysDoYouNeed2' => $hookMain['HookHowManyDaysDoYouNeed2'] ?? null,
+            'HookHowManyDaysDoYouNeed2' => $hookMain['HowManyDaysDoYouNeed2'] ?? null,
             'HookType' => $hookMain['HookType'] ?? null,
             'HookAreYouAbleToProvideAProof' => isset($hookMain['HookAreYouAbleToProvideAProof'])
                 ? (is_array($hookMain['HookAreYouAbleToProvideAProof']) ? json_encode($hookMain['HookAreYouAbleToProvideAProof']) : $hookMain['HookAreYouAbleToProvideAProof'])
@@ -104,7 +104,7 @@ class RDO_Data_Controller extends Controller
             'HookEndDate'   => $hookMain['HookEndDate'] ?? $rdoData->HookEndDate,
             'HookDepartment_ID' => $hookDepartment['Id'] ?? $rdoData->HookDepartment_ID,
             'HookDepartment_Lable' => $hookDepartment['Label'] ?? $rdoData->HookDepartment_Lable,
-            'HowManyDaysDoYouNeed2' => $hookMain['HookHowManyDaysDoYouNeed2'] ?? $rdoData->HookHowManyDaysDoYouNeed2,
+            'HowManyDaysDoYouNeed2' => $hookMain['HowManyDaysDoYouNeed2'] ?? $rdoData->HookHowManyDaysDoYouNeed2,
             'HookType' => $hookMain['HookType'] ?? $rdoData->HookType,
             'HookAreYouAbleToProvideAProof' => isset($hookMain['HookAreYouAbleToProvideAProof'])
                 ? (is_array($hookMain['HookAreYouAbleToProvideAProof']) ? json_encode($hookMain['HookAreYouAbleToProvideAProof']) : $hookMain['HookAreYouAbleToProvideAProof'])
