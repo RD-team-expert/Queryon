@@ -108,9 +108,8 @@ class RDO_Data_Controller extends Controller
                 ? (is_array($hookMain['HookAreYouAbleToProvideAProof']) ? json_encode($hookMain['HookAreYouAbleToProvideAProof']) : $hookMain['HookAreYouAbleToProvideAProof'])
                 : $rdoData->HookAreYouAbleToProvideAProof,
             'HookHowManyDaysDoYouNeed2_IncrementBy' => $hookMain['HookHowManyDaysDoYouNeed2_IncrementBy'] ?? $rdoData->HookHowManyDaysDoYouNeed2_IncrementBy,
-            'HookAreYouAbleToProvideMoreSpecificPlease_IsRequired' => isset($hookMain['HookAreYouAbleToProvideMoreSpecificPlease_IsRequired'])
-                ? ($hookMain['HookAreYouAbleToProvideMoreSpecificPlease_IsRequired'] ? 'true' : 'false')
-                : $rdoData->HookAreYouAbleToProvideMoreSpecificPlease_IsRequired,
+            'HookAreYouAbleToProvideMoreSpecificPlease_IsRequired' => $hookMain['HookAreYouAbleToProvideMoreSpecificPlease'] ?? null,
+
 
             // HookControlPanel mapping
             'DirectManagerName_ID' => $hookControlPanel['DirectManagerName']['Id'] ?? $rdoData->DirectManagerName_ID,
