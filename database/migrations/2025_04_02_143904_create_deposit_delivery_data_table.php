@@ -39,7 +39,7 @@ class CreateDepositDeliveryDataTable extends Migration
             $table->decimal('Hook_CostOfRefunds', 20, 2)->nullable();
             $table->decimal('Hook_UnfulfilledOrderRate', 20, 2)->nullable();
             $table->decimal('Hook_TimeUnavailableDuringOpenHoursHhmm', 20, 2)->nullable();
-            $table->decimal('Hook_TopInaccurateItem', 20, 2)->nullable();
+            $table->string('Hook_TopInaccurateItem')->nullable();
             // Because "Hook_ReviewsResponded" was already used, we rename the second occurrence.
             $table->string('Hook_ReviewsResponded_2')->nullable();
             $table->string('Hook_NAOT_CustomerReviewsOverview')->nullable();
