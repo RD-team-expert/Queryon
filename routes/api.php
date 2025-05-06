@@ -30,14 +30,14 @@ Route::post('/employees-data/delete', [EmployeesDataController::class, 'destroy'
 
 //Get data
 //Export data as CSV
-Route::get('/export-to-excel', [ExportEMPDataController::class, 'exportToExcel'])
-->middleware(CheckSecretHeader::class);
-// Return data as JSON
-Route::get('/get-data', [ExportEMPDataController::class, 'getData'])
-->middleware(CheckSecretHeader::class);
-// end point to excel
-Route::get('/export', [ExportEMPDataController::class, 'export'])
-->middleware(CheckSecretHeader::class);
+Route::middleware([CheckSecretHeader::class])->group(function () {
+    //Export data as CSV
+    Route::get('/export-to-excel', [ExportEMPDataController::class, 'exportToExcel']);
+    // Return data as JSON
+    Route::get('/get-data', [ExportEMPDataController::class, 'getData']);
+    // end point to excel
+    Route::get('/export', [ExportEMPDataController::class, 'export']);
+});
 
 //********** RDO Data Form **************//
 //create
@@ -49,14 +49,14 @@ Route::post('/rdo_data/destroy', [RDO_Data_Controller::class, 'destroy']);
 
 //Get data
 //Export data as CSV
-Route::get('/rdo_data/excel', [ExportRDODataController::class, 'exportToExcel'])
-->middleware(CheckSecretHeader::class);
-// Return data as JSON
-Route::get('/rdo_data/data', [ExportRDODataController::class, 'getData'])
-->middleware(CheckSecretHeader::class);
-// end point to excel
-Route::get('/rdo_data/export', [ExportRDODataController::class, 'export'])
-->middleware(CheckSecretHeader::class);
+Route::middleware([CheckSecretHeader::class])->group(function () {
+    //Export data as CSV
+    Route::get('/rdo_data/excel', [ExportRDODataController::class, 'exportToExcel']);
+    // Return data as JSON
+    Route::get('/rdo_data/data', [ExportRDODataController::class, 'getData']);
+    // end point to excel
+    Route::get('/rdo_data/export', [ExportRDODataController::class, 'export']);
+});
 
 //********** Late_Early Data Form **************//
 Route::post('/store-late-early', [LateEarlyController::class, 'store']);
@@ -66,18 +66,14 @@ Route::post('/delete-late-early', [LateEarlyController::class, 'destroy']);
 
 //get data
 // Route to export Late_Early data as CSV for Excel
-Route::get('/export-late-early/excel', [Export_Late_Early_Controller::class, 'exportToExcel'])
-->middleware(CheckSecretHeader::class);
-
-// Route to return all Late_Early data as JSON
-Route::get('/export-late-early/data', [Export_Late_Early_Controller::class, 'getData'])
-->middleware(CheckSecretHeader::class);
-
-// Route to export Late_Early data as downloadable CSV
-Route::get('/export-late-early', [Export_Late_Early_Controller::class, 'export'])
-->middleware(CheckSecretHeader::class);
-
-
+Route::middleware([CheckSecretHeader::class])->group(function () {
+    // Route to export Late_Early data as CSV for Excel
+    Route::get('/export-late-early/excel', [Export_Late_Early_Controller::class, 'exportToExcel']);
+    // Route to return all Late_Early data as JSON
+    Route::get('/export-late-early/data', [Export_Late_Early_Controller::class, 'getData']);
+    // Route to export Late_Early data as downloadable CSV
+    Route::get('/export-late-early', [Export_Late_Early_Controller::class, 'export']);
+});
 //********** Caps Data Form **************//
 
 Route::post('/caps/create', [CapsController::class, 'store']);
@@ -86,14 +82,14 @@ Route::post('/caps/destroy', [CapsController::class, 'destroy']);
 
 //get data
 // Route to export Caps data as CSV for Excel
-Route::get('/export-caps-data/excel', [ExportCapsDataController::class, 'exportToExcel'])
-->middleware(CheckSecretHeader::class);
-// Route to return all Caps data as JSON
-Route::get('/export-caps-data/data', [ExportCapsDataController::class, 'getData'])
-->middleware(CheckSecretHeader::class);
-// Route to export Caps data as downloadable CSV
-Route::get('/export-caps-data/export', [ExportCapsDataController::class, 'export'])
-->middleware(CheckSecretHeader::class);
+Route::middleware([CheckSecretHeader::class])->group(function () {
+    // Route to export Caps data as CSV for Excel
+    Route::get('/export-caps-data/excel', [ExportCapsDataController::class, 'exportToExcel']);
+    // Route to return all Caps data as JSON
+    Route::get('/export-caps-data/data', [ExportCapsDataController::class, 'getData']);
+    // Route to export Caps data as downloadable CSV
+    Route::get('/export-caps-data/export', [ExportCapsDataController::class, 'export']);
+});
 
 //********clock in out excel data */
 
@@ -106,14 +102,15 @@ Route::post('/clock-in-out/delete-by-entry', [ClockInOutController::class, 'dele
 
 //export clock in out data
 // Route to export Clock In/Out data as CSV for Excel
-Route::get('/export-clock-in-out/excel', [Export_ClockInOutController::class, 'exportToExcel'])
-->middleware(CheckSecretHeader::class);
-// Route to return all Clock In/Out data as JSON
-Route::get('/export-clock-in-out/data', [Export_ClockInOutController::class, 'getData'])
-->middleware(CheckSecretHeader::class);
-// Route to export Clock In/Out data as downloadable CSV
-Route::get('/export-clock-in-out/export', [Export_ClockInOutController::class, 'export'])
-->middleware(CheckSecretHeader::class);
+
+Route::middleware([CheckSecretHeader::class])->group(function () {
+    // Route to export Clock In/Out data as CSV for Excel
+    Route::get('/export-clock-in-out/excel', [Export_ClockInOutController::class, 'exportToExcel']);
+    // Route to return all Clock In/Out data as JSON
+    Route::get('/export-clock-in-out/data', [Export_ClockInOutController::class, 'getData']);
+    // Route to export Clock In/Out data as downloadable CSV
+    Route::get('/export-clock-in-out/export', [Export_ClockInOutController::class, 'export']);
+});
 
 
 
@@ -127,12 +124,11 @@ Route::post('/pizza/littlecaesars/delete', [App\Http\Controllers\Pizza\LittleCae
 
 
 // Export routes
-Route::get('/pizza/littlecaesars/excel', [App\Http\Controllers\Pizza\ExportLittleCaesarsHrDepartmentController::class, 'exportToExcel'])
-->middleware(CheckSecretHeader::class);
-Route::get('/pizza/littlecaesars/data', [App\Http\Controllers\Pizza\ExportLittleCaesarsHrDepartmentController::class, 'getData'])
-->middleware(CheckSecretHeader::class);
-Route::get('/pizza/littlecaesars/export', [App\Http\Controllers\Pizza\ExportLittleCaesarsHrDepartmentController::class, 'export'])
-->middleware(CheckSecretHeader::class);
+Route::middleware([CheckSecretHeader::class])->group(function () {
+    Route::get('/pizza/littlecaesars/excel', [App\Http\Controllers\Pizza\ExportLittleCaesarsHrDepartmentController::class, 'exportToExcel']);
+    Route::get('/pizza/littlecaesars/data', [App\Http\Controllers\Pizza\ExportLittleCaesarsHrDepartmentController::class, 'getData']);
+    Route::get('/pizza/littlecaesars/export', [App\Http\Controllers\Pizza\ExportLittleCaesarsHrDepartmentController::class, 'export']);
+});
 
 
 /************* deposit delivery ************/
@@ -145,17 +141,16 @@ Route::post('/deposit-delivery/delete', [App\Http\Controllers\Pizza\DepositDeliv
 
 // Deposit Delivery Data Export Routes
 // Query parameters: start_date, end_date, franchisee_num
-Route::get('/deposit-delivery/export-excel', [App\Http\Controllers\Pizza\DepositDeliveryController::class, 'exportToExcel']);
-Route::get('/deposit-delivery/get-data', [App\Http\Controllers\Pizza\DepositDeliveryController::class, 'getData']);
-Route::get('/deposit-delivery/export', [App\Http\Controllers\Pizza\DepositDeliveryController::class, 'export']);
+Route::middleware([CheckSecretHeader::class])->group(function () {
+    Route::get('/deposit-delivery/export-excel', [App\Http\Controllers\Pizza\DepositDeliveryController::class, 'exportToExcel']);
+    Route::get('/deposit-delivery/get-data', [App\Http\Controllers\Pizza\DepositDeliveryController::class, 'getData']);
+    Route::get('/deposit-delivery/export', [App\Http\Controllers\Pizza\DepositDeliveryController::class, 'export']);
 
-//with parameters
-Route::get('/deposit-delivery/export-excel/{start_date?}/{end_date?}/{franchisee_num?}', [App\Http\Controllers\Pizza\DepositDeliveryController::class, 'exportToExcel']);
-Route::get('/deposit-delivery/get-data/{start_date?}/{end_date?}/{franchisee_num?}', [App\Http\Controllers\Pizza\DepositDeliveryController::class, 'getData']);
-Route::get('/deposit-delivery/export/{start_date?}/{end_date?}/{franchisee_num?}', [App\Http\Controllers\Pizza\DepositDeliveryController::class, 'export']);
+    Route::get('/deposit-delivery/export-excel/{start_date?}/{end_date?}/{franchisee_num?}', [App\Http\Controllers\Pizza\DepositDeliveryController::class, 'exportToExcel']);
+    Route::get('/deposit-delivery/get-data/{start_date?}/{end_date?}/{franchisee_num?}', [App\Http\Controllers\Pizza\DepositDeliveryController::class, 'getData']);
+    Route::get('/deposit-delivery/export/{start_date?}/{end_date?}/{franchisee_num?}', [App\Http\Controllers\Pizza\DepositDeliveryController::class, 'export']);
 
-
-//****************//
-Route::get('/export-final-summary/{start_date?}/{end_date?}/{franchise_store?}', [ExportController::class, 'exportFinalSummary']);
-Route::get('/final-summary-json/{start_date?}/{end_date?}/{franchise_store?}', [ExportController::class, 'getFinalSummaryJson']);
-Route::get('/final-summary-csv/{start_date?}/{end_date?}/{franchise_store?}', [ExportController::class, 'exportFinalSummaryCsv']);
+    Route::get('/export-final-summary/{start_date?}/{end_date?}/{franchise_store?}', [ExportController::class, 'exportFinalSummary']);
+    Route::get('/final-summary-json/{start_date?}/{end_date?}/{franchise_store?}', [ExportController::class, 'getFinalSummaryJson']);
+    Route::get('/final-summary-csv/{start_date?}/{end_date?}/{franchise_store?}', [ExportController::class, 'exportFinalSummaryCsv']);
+});

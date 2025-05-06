@@ -18,6 +18,12 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
         ]);
+
+        // Register middleware aliases for route groups
+        $middleware->alias([
+            'check.secret' => \App\Http\Middleware\CheckSecretHeader::class,
+            // Add more middleware aliases as needed
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
