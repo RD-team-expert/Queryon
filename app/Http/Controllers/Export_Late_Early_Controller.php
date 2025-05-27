@@ -86,10 +86,30 @@ class Export_Late_Early_Controller extends Controller
     /**
      * Export all Late_Early_Model data as a downloadable CSV.
      */
+    /**
+     * Export all Late_Early_Model data as a downloadable CSV.
+     */
     public function export()
     {
-        // Fetch all records from the Late_Early table
-        $data = Late_Early_Model::all();
+        // Fetch all records, group by EntryNumber and merge split records
+        $data = Late_Early_Model::all()
+            ->groupBy('EntryNumber')
+            ->map(function ($group) {
+                // Merge all records in the group into one
+                $mergedRecord = $group->reduce(function ($carry, $record) {
+                    if (!$carry) return $record;
+
+                    // Merge any non-null values from subsequent records
+                    foreach ($record->getAttributes() as $key => $value) {
+                        if (!is_null($value) && $carry->{$key} != $value) {
+                            $carry->{$key} = $value;
+                        }
+                    }
+                    return $carry;
+                });
+
+                return $mergedRecord;
+            });
 
         // Define the columns to export (all fields)
         $columns = [
@@ -129,20 +149,28 @@ class Export_Late_Early_Controller extends Controller
             // Write header row
             fputcsv($file, $columns);
 
-            // Write each record as a CSV row
-            foreach ($data as $item) {
+            // Write each merged record as a CSV row
+            foreach ($data as $record) {
                 $row = [];
                 foreach ($columns as $col) {
-                    $row[] = $item->{$col};
+                    $value = $record->{$col};
+                    if (is_string($value)) {
+                        $value = str_replace(["\r\n", "\r", "\n"], ' ', $value);
+                    }
+                    $row[] = $value;
                 }
                 fputcsv($file, $row);
             }
+
             fclose($file);
         };
 
-        // Return a streaming download response using Laravel's response()->streamDownload method
+        // Return a streaming download response
         return response()->streamDownload($callback, 'late_early_data.csv', [
             'Content-Type' => 'text/csv',
         ]);
     }
+
+
+
 }
