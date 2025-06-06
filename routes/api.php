@@ -1,5 +1,7 @@
 <?php
 use Illuminate\Support\Facades\Route;
+
+
 use App\Http\Middleware\CheckSecretHeader;
 
 use App\Http\Controllers\ExportEMPDataController;
@@ -17,15 +19,22 @@ use App\Http\Controllers\Pizza\DepositDeliveryDataController;
 
 use App\Http\Controllers\ExportController;
 
-
+use App\Http\Controllers\Clocking;
 /**************************  NVT  **********************/
 
 
 
+Route::post('/clocking_create', [App\Http\Controllers\Clocking::class, 'index']);
+Route::post('/clocking_update', [App\Http\Controllers\Clocking::class, 'update']);
+Route::post('/clocking_delete', [App\Http\Controllers\Clocking::class, 'delete']);
 
+
+Route::get('/clocking_exportjson', [App\Http\Controllers\Clocking::class, 'exportjson']);
 
 Route::middleware([CheckSecretHeader::class])->group(function () {
 
+
+    Route::get('/clocking_exportcsv', [App\Http\Controllers\Clocking::class, 'exportcsv']);
     // Employees Data Form
     Route::get('/export', [ExportEMPDataController::class, 'export']);
 

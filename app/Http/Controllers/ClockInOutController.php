@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\File; // Add this import for the File facade
+use Illuminate\Support\Str;
 use App\Models\ClockInOutData;
 use GuzzleHttp\Client;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
