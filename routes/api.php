@@ -17,9 +17,17 @@ use App\Http\Controllers\LateEarlyController;
 use App\Http\Controllers\ClockInOutController;
 use App\Http\Controllers\Pizza\DepositDeliveryDataController;
 
+use App\Http\Controllers\Health_Plan_Controller;
+
+
 use App\Http\Controllers\ExportController;
 
 use App\Http\Controllers\Clocking;
+
+
+
+
+
 /**************************  NVT  **********************/
 
 
@@ -143,7 +151,17 @@ Route::post('/clock-in-out/delete-by-entry', [ClockInOutController::class, 'dele
 
 /**************************  PIZZA  **********************/
 
-/****LITTLECAESARSHRDEPARTMENT*****/
+/**********HealthPlan************/
+Route::post('/pizza/healthplan/create', [Health_Plan_Controller::class, 'create']);
+Route::post('/pizza/healthplan/update', [Health_Plan_Controller::class, 'update']);
+Route::post('/pizza/healthplan/delete', [Health_Plan_Controller::class, 'delete']);
+
+// Export routes
+Route::get('/pizza/healthplan/excel', [Health_Plan_Controller::class, 'exportToCsv']);
+Route::get('/pizza/healthplan/data', [Health_Plan_Controller::class, 'getData']);
+
+/**********EndHealthPlan************/
+
 /****LITTLECAESARSHRDEPARTMENT*****/
 Route::post('/pizza/littlecaesars/create', [App\Http\Controllers\Pizza\LittleCaesarsHrDepartmentController::class, 'store']);
 Route::post('/pizza/littlecaesars/update', [App\Http\Controllers\Pizza\LittleCaesarsHrDepartmentController::class, 'update']);
