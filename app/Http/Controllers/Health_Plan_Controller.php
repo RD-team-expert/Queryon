@@ -50,7 +50,7 @@ class Health_Plan_Controller extends Controller
         $updateData = [
             'first_name'               => $data['jsonName']['First']                    ?? null,
             'last_name'                => $data['jsonName']['Last']                     ?? null,
-            'email'                    => $data['jsonEmailAddress']                     ?? null, // note spelling
+            'email'                    => $data['jsonEmailAdress']                      ?? null,// note spelling
             'store'                    => $data['jsonStore']['Label']                   ?? null,
             'onboarding_offboarding'   => $data['jsonGroupManager']['jsonOnboardingOffboarding'] ?? null,
             'working_start_date'       => $data['jsonGroupManager']['jsonWorkingStartDate']   ?? null,
