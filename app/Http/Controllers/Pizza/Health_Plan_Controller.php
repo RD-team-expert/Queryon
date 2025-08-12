@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Pizza;
 
 use Illuminate\Http\Request;
 use App\Models\HealthPlan;
-
+use App\Http\Controllers\Controller;
 class Health_Plan_Controller extends Controller
 {
     //index

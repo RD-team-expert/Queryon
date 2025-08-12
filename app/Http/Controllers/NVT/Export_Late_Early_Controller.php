@@ -1,10 +1,9 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\NVT;
 
 use App\Models\Late_Early_Model;
-use Illuminate\Http\Request;
-
+use App\Http\Controllers\Controller;
 class Export_Late_Early_Controller extends Controller
 {
     /**

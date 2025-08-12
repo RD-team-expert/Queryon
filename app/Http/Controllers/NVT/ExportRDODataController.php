@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\NVT;
 
-use Illuminate\Http\Request;
+
 use App\Models\RDO_Data_Model;
-
+use App\Http\Controllers\Controller;
 class ExportRDODataController extends Controller
 {
     /**

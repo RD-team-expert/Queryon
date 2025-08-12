@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\NVT;
 
-use Illuminate\Http\Request;
+
 use App\Models\EmployeesDataModel;
-
+use App\Http\Controllers\Controller;
 class ExportEMPDataController extends Controller
 {
     /**

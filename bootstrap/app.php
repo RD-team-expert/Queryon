@@ -5,6 +5,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
+use App\Http\Middleware\AuthCheckingForToken;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -22,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Register middleware aliases for route groups
         $middleware->alias([
             'check.secret' => \App\Http\Middleware\CheckSecretHeader::class,
+            'auth.verify' => AuthCheckingForToken::class,
             // Add more middleware aliases as needed
         ]);
     })
