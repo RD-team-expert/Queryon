@@ -1,16 +1,13 @@
 <?php
 use Illuminate\Support\Facades\Route;
 
-use App\Http\Controllers\NVT\ExportEMPDataController;
-use App\Http\Controllers\NVT\ExportRDODataController;
-use App\Http\Controllers\NVT\Export_Late_Early_Controller;
 use App\Http\Controllers\NVT\EmployeesDataController;
 use App\Http\Controllers\NVT\RDO_Data_Controller;
 use App\Http\Controllers\NVT\LateEarlyController;
 
 use App\Http\Controllers\Pizza\Health_Plan_Controller;
-use App\Http\Controllers\Pizza\DepositDeliveryDataController;
-
+use App\Http\Controllers\Pizza\DepositDeliveryController;
+use App\Http\Controllers\Pizza\LittleCaesarsHrDepartmentController;
 
 
 /**************************  NVT  **********************/
@@ -49,44 +46,44 @@ Route::get('/pizza/healthplan/excel', [Health_Plan_Controller::class, 'exportToC
 /**********EndHealthPlan************/
 
 /****LITTLECAESARSHRDEPARTMENT*****/
-Route::post('/pizza/littlecaesars/create', [App\Http\Controllers\Pizza\LittleCaesarsHrDepartmentController::class, 'store']);
-Route::post('/pizza/littlecaesars/update', [App\Http\Controllers\Pizza\LittleCaesarsHrDepartmentController::class, 'update']);
-Route::post('/pizza/littlecaesars/delete', [App\Http\Controllers\Pizza\LittleCaesarsHrDepartmentController::class, 'destroy']);
+Route::post('/pizza/littlecaesars/create', [LittleCaesarsHrDepartmentController::class, 'store']);
+Route::post('/pizza/littlecaesars/update', [LittleCaesarsHrDepartmentController::class, 'update']);
+Route::post('/pizza/littlecaesars/delete', [LittleCaesarsHrDepartmentController::class, 'destroy']);
 
 // Export routes
-Route::get('/pizza/littlecaesars/excel', [App\Http\Controllers\Pizza\ExportLittleCaesarsHrDepartmentController::class, 'exportToExcel']);
+Route::get('/pizza/littlecaesars/excel', [LittleCaesarsHrDepartmentController::class, 'exportToExcel']);
 
 /************* deposit delivery ************/
 
-Route::post('pizza/deposit-delivery-data', [DepositDeliveryDataController::class, 'create']);
-Route::post('/deposit-delivery/update', [App\Http\Controllers\Pizza\DepositDeliveryDataController::class, 'update']);
-Route::post('/deposit-delivery/delete', [App\Http\Controllers\Pizza\DepositDeliveryDataController::class, 'destroy']);
+Route::post('pizza/deposit-delivery-data', [DepositDeliveryController::class, 'create']);
+Route::post('/deposit-delivery/update', [DepositDeliveryController::class, 'update']);
+Route::post('/deposit-delivery/delete', [DepositDeliveryController::class, 'destroy']);
 
 
 //**************Exporters************/
 //Csvs And excel endpoints
 Route::middleware('check.secret')->group(function () {
 
-    Route::get('/export', [ExportEMPDataController::class, 'export']);
-    Route::get('/rdo_data/export', [ExportRDODataController::class, 'export']);
-    Route::get('/export-late-early', [Export_Late_Early_Controller::class, 'export']);
-    Route::get('/pizza/littlecaesars/export', [App\Http\Controllers\Pizza\ExportLittleCaesarsHrDepartmentController::class, 'export']);
-    Route::get('/deposit-delivery/export', [App\Http\Controllers\Pizza\DepositDeliveryController::class, 'export']);
-    Route::get('/deposit-delivery/export/{start_date?}/{end_date?}/{franchisee_num?}', [App\Http\Controllers\Pizza\DepositDeliveryController::class, 'export']);
-    Route::get('/deposit-delivery/export-excel', [App\Http\Controllers\Pizza\DepositDeliveryController::class, 'exportToExcel']);
-    Route::get('/deposit-delivery/export-excel/{start_date?}/{end_date?}/{franchisee_num?}', [App\Http\Controllers\Pizza\DepositDeliveryController::class, 'exportToExcel']);
-   });
+    Route::get('/export', [EmployeesDataController::class, 'export']);
+    Route::get('/rdo_data/export', [RDO_Data_Controller::class, 'export']);
+    Route::get('/export-late-early', [LateEarlyController::class, 'export']);
+    Route::get('/pizza/littlecaesars/export', [LittleCaesarsHrDepartmentController::class, 'export']);
+    Route::get('/deposit-delivery/export', [DepositDeliveryController::class, 'export']);
+    Route::get('/deposit-delivery/export/{start_date?}/{end_date?}/{franchisee_num?}', [DepositDeliveryController::class, 'export']);
+    Route::get('/deposit-delivery/export-excel', [DepositDeliveryController::class, 'exportToExcel']);
+    Route::get('/deposit-delivery/export-excel/{start_date?}/{end_date?}/{franchisee_num?}', [DepositDeliveryController::class, 'exportToExcel']);
+});
 
 // Json
 Route::middleware('auth.verify')->group(function () {
 
-    Route::get('/export-late-early/data', [Export_Late_Early_Controller::class, 'getData']);
-    Route::get('/get-data', [ExportEMPDataController::class, 'getData']);
-    Route::get('/rdo_data/data', [ExportRDODataController::class, 'getData']);
+    Route::get('/export-late-early/data', [LateEarlyController::class, 'getData']);
+    Route::get('/get-data', [EmployeesDataController::class, 'getData']);
+    Route::get('/rdo_data/data', [RDO_Data_Controller::class, 'getData']);
     Route::get('/pizza/healthplan/data', [Health_Plan_Controller::class, 'getData']);
-    Route::get('/pizza/littlecaesars/data', [App\Http\Controllers\Pizza\ExportLittleCaesarsHrDepartmentController::class, 'getData']);
-    Route::get('/deposit-delivery/get-data/{start_date?}/{end_date?}/{franchisee_num?}', [App\Http\Controllers\Pizza\DepositDeliveryController::class, 'getData']);
-    Route::get('/deposit-delivery/get-data', [App\Http\Controllers\Pizza\DepositDeliveryController::class, 'getData']);
+    Route::get('/pizza/littlecaesars/data', [LittleCaesarsHrDepartmentController::class, 'getData']);
+    Route::get('/deposit-delivery/get-data/{start_date?}/{end_date?}/{franchisee_num?}', [DepositDeliveryController::class, 'getData']);
+    Route::get('/deposit-delivery/get-data', [DepositDeliveryController::class, 'getData']);
 
 });
 
