@@ -40,18 +40,12 @@ Route::post('/pizza/healthplan/create', [Health_Plan_Controller::class, 'create'
 Route::post('/pizza/healthplan/update', [Health_Plan_Controller::class, 'update']);
 Route::post('/pizza/healthplan/delete', [Health_Plan_Controller::class, 'delete']);
 
-// Export routes
-Route::get('/pizza/healthplan/excel', [Health_Plan_Controller::class, 'exportToCsv']);
-
-/**********EndHealthPlan************/
 
 /****LITTLECAESARSHRDEPARTMENT*****/
 Route::post('/pizza/littlecaesars/create', [LittleCaesarsHrDepartmentController::class, 'store']);
 Route::post('/pizza/littlecaesars/update', [LittleCaesarsHrDepartmentController::class, 'update']);
 Route::post('/pizza/littlecaesars/delete', [LittleCaesarsHrDepartmentController::class, 'destroy']);
 
-// Export routes
-Route::get('/pizza/littlecaesars/excel', [LittleCaesarsHrDepartmentController::class, 'exportToExcel']);
 
 /************* deposit delivery ************/
 
@@ -72,6 +66,7 @@ Route::middleware('check.secret')->group(function () {
     Route::get('/deposit-delivery/export/{start_date?}/{end_date?}/{franchisee_num?}', [DepositDeliveryController::class, 'export']);
     Route::get('/deposit-delivery/export-excel', [DepositDeliveryController::class, 'exportToExcel']);
     Route::get('/deposit-delivery/export-excel/{start_date?}/{end_date?}/{franchisee_num?}', [DepositDeliveryController::class, 'exportToExcel']);
+
 });
 
 // Json
