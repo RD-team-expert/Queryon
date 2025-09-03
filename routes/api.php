@@ -4,11 +4,12 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\NVT\EmployeesDataController;
 use App\Http\Controllers\NVT\RDO_Data_Controller;
 use App\Http\Controllers\NVT\LateEarlyController;
+use Illuminate\Http\Request;
 
 use App\Http\Controllers\Pizza\Health_Plan_Controller;
 use App\Http\Controllers\Pizza\DepositDeliveryController;
 use App\Http\Controllers\Pizza\LittleCaesarsHrDepartmentController;
-
+use App\Http\Controllers\PizzaScheduleController;
 
 /**************************  NVT  **********************/
 //********** Employees Data Form **************//
@@ -81,4 +82,8 @@ Route::middleware('auth.verify')->group(function () {
     Route::get('/deposit-delivery/get-data', [DepositDeliveryController::class, 'getData']);
 
 });
+
+
+
+Route::post('/pizza-schedule', [PizzaScheduleController::class, 'store']);
 
