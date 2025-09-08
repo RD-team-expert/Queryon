@@ -11,6 +11,7 @@ use App\Http\Controllers\Pizza\DepositDeliveryController;
 use App\Http\Controllers\Pizza\LittleCaesarsHrDepartmentController;
 use App\Http\Controllers\PizzaScheduleController;
 
+use App\Http\Controllers\Pizza\DSQR_Controller;
 /**************************  NVT  **********************/
 //********** Employees Data Form **************//
 //create
@@ -83,7 +84,7 @@ Route::middleware('auth.verify')->group(function () {
 
 });
 
-
+Route::get('/deposit-delivery-dsqr/{store}/{date}', [DSQR_Controller::class, 'index']);
 
 Route::post('/pizza-schedule', [PizzaScheduleController::class, 'store']);
 
