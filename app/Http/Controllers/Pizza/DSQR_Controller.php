@@ -38,7 +38,7 @@ class DSQR_Controller extends Controller
 
         // Return requested data as JSON
         return response()->json([
-            'weeklyHourlySales'   => $weeklyDepositDelivery,
+            'weeklyDepositDelivery'   => $weeklyDepositDelivery,
         ]);
     }
 }
