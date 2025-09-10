@@ -39,13 +39,13 @@ class AttendanceSchedule extends Model
     protected $casts = [
         'schedule_date' => 'date',
         // Time fields
-        'tue_in' => 'time:H:i:s', 'tue_out' => 'time:H:i:s',
-        'wed_in' => 'time:H:i:s', 'wed_out' => 'time:H:i:s',
-        'thu_in' => 'time:H:i:s', 'thu_out' => 'time:H:i:s',
-        'fri_in' => 'time:H:i:s', 'fri_out' => 'time:H:i:s',
-        'sat_in' => 'time:H:i:s', 'sat_out' => 'time:H:i:s',
-        'sun_in' => 'time:H:i:s', 'sun_out' => 'time:H:i:s',
-        'mon_in' => 'time:H:i:s', 'mon_out' => 'time:H:i:s',
+        'tue_in' => 'string', 'tue_out' => 'string',
+        'wed_in' => 'string', 'wed_out' => 'string',
+        'thu_in' => 'string', 'thu_out' => 'string',
+        'fri_in' => 'string', 'fri_out' => 'string',
+        'sat_in' => 'string', 'sat_out' => 'string',
+        'sun_in' => 'string', 'sun_out' => 'string',
+        'mon_in' => 'string', 'mon_out' => 'string',
         // Decimal fields
         'tue_total_hrs' => 'decimal:2', 'tue_hours_cost' => 'decimal:2', 'tue_hours' => 'decimal:2', 'tue_sales' => 'decimal:2',
         'wed_total_hrs' => 'decimal:2', 'wed_hours_cost' => 'decimal:2', 'wed_hours' => 'decimal:2', 'wed_sales' => 'decimal:2',

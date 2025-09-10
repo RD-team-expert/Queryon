@@ -87,4 +87,4 @@ Route::middleware('auth.verify')->group(function () {
 Route::get('/deposit-delivery-dsqr/{store}/{date}', [DSQR_Controller::class, 'index']);
 
 Route::post('/pizza-schedule', [PizzaScheduleController::class, 'store']);
-
+Route::get('/pizza-schedule/{store}/{date}', [PizzaScheduleController::class, 'exportCsv']);
