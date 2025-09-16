@@ -114,7 +114,7 @@ return new class extends Migration
             // Monday fields
             $table->string('mon_vci', 2)->nullable();
             $table->time('mon_in')->nullable();
-            $table->time('mon_out')->nullable();
+            $table->Time('mon_out')->nullable();
             $table->string('mon_status', 20)->nullable();
             $table->decimal('mon_total_hrs', 12, 2)->nullable();
             $table->string('mon_op', 2)->nullable();

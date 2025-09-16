@@ -10,7 +10,7 @@ use App\Http\Controllers\Pizza\Health_Plan_Controller;
 use App\Http\Controllers\Pizza\DepositDeliveryController;
 use App\Http\Controllers\Pizza\LittleCaesarsHrDepartmentController;
 use App\Http\Controllers\PizzaScheduleController;
-
+use App\Http\Controllers\PizzaScheduleWHController;
 use App\Http\Controllers\Pizza\DSQR_Controller;
 /**************************  NVT  **********************/
 //********** Employees Data Form **************//
@@ -88,3 +88,5 @@ Route::get('/deposit-delivery-dsqr/{store}/{date}', [DSQR_Controller::class, 'in
 
 Route::post('/pizza-schedule', [PizzaScheduleController::class, 'store']);
 Route::get('/pizza-schedule/{store}/{date}', [PizzaScheduleController::class, 'exportCsv']);
+
+Route::get('/pizza-schedule-wh/{store}/{date}', [PizzaScheduleWHController::class, 'exportCsv']);
