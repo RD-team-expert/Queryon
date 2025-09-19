@@ -42,7 +42,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['emp_id', 'schedule_date']);
-            $table->unique(['emp_id', 'schedule_date'], 'weekly_summary_unique');
+            $table->unique(['store','emp_id', 'schedule_date'], 'weekly_summary_unique');
         });
     }
 

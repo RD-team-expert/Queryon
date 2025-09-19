@@ -82,15 +82,15 @@ class PizzaScheduleController extends Controller
 
             DB::transaction(function () use ($empInfoData, $attendanceData, $weeklySummaryData, &$totalProcessed) {
                 // Upsert Employee Info
-                $this->chunkUpsert(EmpInfo::class, $empInfoData, ['emp_id', 'schedule_date']);
+                $this->chunkUpsert(EmpInfo::class, $empInfoData, ['store','emp_id', 'schedule_date']);
                 Log::info("PizzaSchedule - Upserted " . count($empInfoData) . " employee info records");
 
                 // Upsert Attendance Schedule
-                $this->chunkUpsert(AttendanceSchedule::class, $attendanceData, ['emp_id', 'schedule_date']);
+                $this->chunkUpsert(AttendanceSchedule::class, $attendanceData, ['store','emp_id', 'schedule_date']);
                 Log::info("PizzaSchedule - Upserted " . count($attendanceData) . " attendance schedule records");
 
                 // Upsert Weekly Schedule Summary
-                $this->chunkUpsert(WeeklyScheduleSummary::class, $weeklySummaryData, ['emp_id', 'schedule_date']);
+                $this->chunkUpsert(WeeklyScheduleSummary::class, $weeklySummaryData, ['store','emp_id', 'schedule_date']);
                 Log::info("PizzaSchedule - Upserted " . count($weeklySummaryData) . " weekly summary records");
 
                 $totalProcessed = count($empInfoData);
@@ -524,45 +524,40 @@ class PizzaScheduleController extends Controller
         return $value;
     }
 
-public function exportCsv(Request $request, $store, $date)
+public function exportCsv(Request $request, $date)
 {
     try {
-        Log::info("PizzaSchedule CSV Export - Store: {$store}, Date: {$date}");
+        Log::info("PizzaSchedule CSV Export - Date: {$date}");
 
         // Validate date format
         if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
             return response()->json(['message' => 'Invalid date format. Use YYYY-MM-DD'], 422);
         }
 
-        // Get data from all three tables using toArray() to bypass casting issues
-        $empInfoData = EmpInfo::where('store', $store)
-            ->where('schedule_date', $date)
+        // Get data from all three tables (only by date now)
+        $empInfoData = EmpInfo::where('schedule_date', $date)
             ->get()
             ->toArray();
 
-        $attendanceData = AttendanceSchedule::where('store', $store)
-            ->where('schedule_date', $date)
+        $attendanceData = AttendanceSchedule::where('schedule_date', $date)
             ->get()
             ->map(function($item) {
-                // Convert to array to bypass casting issues
-                $array = $item->toArray();
-                return $array;
+                return $item->toArray();
             })
             ->toArray();
 
-        $weeklySummaryData = WeeklyScheduleSummary::where('store', $store)
-            ->where('schedule_date', $date)
+        $weeklySummaryData = WeeklyScheduleSummary::where('schedule_date', $date)
             ->get()
             ->toArray();
 
         if (empty($empInfoData) && empty($attendanceData) && empty($weeklySummaryData)) {
-            return response()->json(['message' => 'No data found for the specified store and date'], 404);
+            return response()->json(['message' => 'No data found for the specified date'], 404);
         }
 
         // Create reverse field mapping (database column to JSON field name)
         $reverseFieldMapping = array_flip($this->getFieldMapping());
 
-        // Get all unique employee IDs from all tables
+        // Get all unique employee IDs
         $allEmpIds = collect()
             ->merge(collect($empInfoData)->pluck('emp_id'))
             ->merge(collect($attendanceData)->pluck('emp_id'))
@@ -576,7 +571,7 @@ public function exportCsv(Request $request, $store, $date)
             return response()->json(['message' => 'No employee data found'], 404);
         }
 
-        // Index data by emp_id for quick lookup
+        // Index data by emp_id
         $empInfoByEmpId = collect($empInfoData)->keyBy('emp_id');
         $attendanceByEmpId = collect($attendanceData)->keyBy('emp_id');
         $weeklyByEmpId = collect($weeklySummaryData)->keyBy('emp_id');
@@ -584,34 +579,27 @@ public function exportCsv(Request $request, $store, $date)
         // Prepare CSV data
         $csvData = [];
 
-        // Build headers - using original JSON field names
-        $headers = ['Store', 'ScheduleDate']; // Add these first
-
-        // Add all possible fields from field mapping in the order they appear
+        // Headers
+        $headers = ['ScheduleDate']; // no Store anymore
         $fieldMapping = $this->getFieldMapping();
         foreach ($fieldMapping as $jsonField => $dbColumn) {
             $headers[] = $jsonField;
         }
-
         $csvData[] = $headers;
 
-        // Build data rows
+        // Data rows
         foreach ($allEmpIds as $empId) {
             $row = [
-                'Store' => $store,
                 'ScheduleDate' => $date
             ];
 
-            // Get data from each table
             $empInfo = $empInfoByEmpId->get($empId);
             $attendance = $attendanceByEmpId->get($empId);
             $weekly = $weeklyByEmpId->get($empId);
 
-            // Process each field in the mapping
             foreach ($fieldMapping as $jsonField => $dbColumn) {
                 $value = null;
 
-                // Find the value from the appropriate table
                 if ($empInfo && isset($empInfo[$dbColumn])) {
                     $value = $empInfo[$dbColumn];
                 } elseif ($attendance && isset($attendance[$dbColumn])) {
@@ -620,11 +608,9 @@ public function exportCsv(Request $request, $store, $date)
                     $value = $weekly[$dbColumn];
                 }
 
-                // Format the value for CSV export
                 $row[$jsonField] = $this->formatCsvValue($value, $dbColumn);
             }
 
-            // Convert associative array to indexed array matching header order
             $orderedRow = [];
             foreach ($headers as $header) {
                 $orderedRow[] = $row[$header] ?? '';
@@ -636,12 +622,11 @@ public function exportCsv(Request $request, $store, $date)
         // Generate CSV content
         $csvContent = $this->arrayToCsv($csvData);
 
-        // Create filename
-        $filename = "pizza_schedule_{$store}_{$date}.csv";
+        // Filename (no store)
+        $filename = "pizza_schedule_{$date}.csv";
 
-        Log::info("PizzaSchedule CSV Export - Successfully exported " . count($csvData) - 1 . " records");
+        Log::info("PizzaSchedule CSV Export - Successfully exported " . (count($csvData) - 1) . " records");
 
-        // Return CSV as download
         return response($csvContent)
             ->header('Content-Type', 'text/csv')
             ->header('Content-Disposition', "attachment; filename=\"{$filename}\"")
@@ -659,6 +644,7 @@ public function exportCsv(Request $request, $store, $date)
         ], 500);
     }
 }
+
 
 /**
  * Format values for CSV export

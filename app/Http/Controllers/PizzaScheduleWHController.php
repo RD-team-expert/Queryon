@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -10,26 +9,27 @@ use Carbon\Carbon;
 class PizzaScheduleWHController extends Controller
 {
     /**
-     * Export working hours CSV showing employee count per hour for each day
+     * Export working hours CSV showing employee count per hour for each day for all stores
      */
-    public function exportCsv(Request $request, $store, $date)
+    public function exportCsv(Request $request, $date)
     {
         try {
-            Log::info("PizzaSchedule WH Export - Store: {$store}, Date: {$date}");
+            Log::info("PizzaSchedule WH Export - Date: {$date}");
 
             // Validate date format
             if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
                 return response()->json(['message' => 'Invalid date format. Use YYYY-MM-DD'], 422);
             }
 
-            // Get all attendance records for the store and date
-            $attendanceRecords = AttendanceSchedule::where('store', $store)
-                ->where('schedule_date', $date)
+            // Get all unique stores from attendance records for this date
+            $stores = AttendanceSchedule::where('schedule_date', $date)
                 ->whereNotNull('emp_id')
-                ->get();
+                ->distinct()
+                ->pluck('store')
+                ->toArray();
 
-            if ($attendanceRecords->isEmpty()) {
-                return response()->json(['message' => 'No attendance data found for the specified store and date'], 404);
+            if (empty($stores)) {
+                return response()->json(['message' => 'No attendance data found for the specified date'], 404);
             }
 
             // Define working hours from 11 AM to 2 AM (next day)
@@ -40,30 +40,39 @@ class PizzaScheduleWHController extends Controller
             $headers = ['store', 'schedule_date', 'hour', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun', 'mon'];
             $csvData[] = $headers;
 
-            // Calculate employee counts for each hour
-            foreach ($workingHours as $hour) {
-                $row = [
-                    'store' => $store,
-                    'schedule_date' => $date,
-                    'hour' => $hour,
-                    'tue' => $this->countEmployeesAtHour($attendanceRecords, 'tue', $hour),
-                    'wed' => $this->countEmployeesAtHour($attendanceRecords, 'wed', $hour),
-                    'thu' => $this->countEmployeesAtHour($attendanceRecords, 'thu', $hour),
-                    'fri' => $this->countEmployeesAtHour($attendanceRecords, 'fri', $hour),
-                    'sat' => $this->countEmployeesAtHour($attendanceRecords, 'sat', $hour),
-                    'sun' => $this->countEmployeesAtHour($attendanceRecords, 'sun', $hour),
-                    'mon' => $this->countEmployeesAtHour($attendanceRecords, 'mon', $hour)
-                ];
-                $csvData[] = array_values($row);
+            // Loop through each store
+            foreach ($stores as $store) {
+                // Get all attendance records for this store and date
+                $attendanceRecords = AttendanceSchedule::where('store', $store)
+                    ->where('schedule_date', $date)
+                    ->whereNotNull('emp_id')
+                    ->get();
+
+                // Calculate employee counts for each hour for this store
+                foreach ($workingHours as $hour) {
+                    $row = [
+                        'store' => $store,
+                        'schedule_date' => $date,
+                        'hour' => $hour,
+                        'tue' => $this->countEmployeesAtHour($attendanceRecords, 'tue', $hour),
+                        'wed' => $this->countEmployeesAtHour($attendanceRecords, 'wed', $hour),
+                        'thu' => $this->countEmployeesAtHour($attendanceRecords, 'thu', $hour),
+                        'fri' => $this->countEmployeesAtHour($attendanceRecords, 'fri', $hour),
+                        'sat' => $this->countEmployeesAtHour($attendanceRecords, 'sat', $hour),
+                        'sun' => $this->countEmployeesAtHour($attendanceRecords, 'sun', $hour),
+                        'mon' => $this->countEmployeesAtHour($attendanceRecords, 'mon', $hour)
+                    ];
+                    $csvData[] = array_values($row);
+                }
             }
 
             // Generate CSV content
             $csvContent = $this->arrayToCsv($csvData);
 
-            // Create filename
-            $filename = "working_hours_{$store}_{$date}.csv";
+            // Create filename with all stores or date only
+            $filename = "working_hours_all_stores_{$date}.csv";
 
-            Log::info("PizzaSchedule WH Export - Successfully exported working hours data");
+            Log::info("PizzaSchedule WH Export - Successfully exported working hours data for all stores");
 
             // Return CSV as download
             return response($csvContent)
@@ -164,6 +173,7 @@ class PizzaScheduleWHController extends Controller
                     if ($checkTime->gte($startTime) && $checkTime->lt($endTime)) {
                         $count++;
                     }
+
                 } catch (\Exception $e2) {
                     Log::warning("Could not parse time for employee {$record->emp_id} on {$day}: {$timeIn} - {$timeOut}");
                     continue;
@@ -180,7 +190,6 @@ class PizzaScheduleWHController extends Controller
     private function arrayToCsv(array $data): string
     {
         $output = '';
-
         foreach ($data as $row) {
             $csvRow = [];
             foreach ($row as $field) {
@@ -193,7 +202,6 @@ class PizzaScheduleWHController extends Controller
             }
             $output .= implode(',', $csvRow) . "\n";
         }
-
         return $output;
     }
 }

@@ -88,6 +88,7 @@ Route::get('/deposit-delivery-dsqr/{store}/{date}', [DSQR_Controller::class, 'da
 Route::get('/deposit-delivery-dsqr-weekly/{store}/{startdate}/{enddate}', [DSQR_Controller::class, 'weekly']);
 
 Route::post('/pizza-schedule', [PizzaScheduleController::class, 'store']);
-Route::get('/pizza-schedule/{store}/{date}', [PizzaScheduleController::class, 'exportCsv']);
 
-Route::get('/pizza-schedule-wh/{store}/{date}', [PizzaScheduleWHController::class, 'exportCsv']);
+Route::get('/pizza-schedule/{date}', [PizzaScheduleController::class, 'exportCsv']);
+
+Route::get('/pizza-schedule-wh/{date}', [PizzaScheduleWHController::class, 'exportCsv']);
