@@ -440,6 +440,7 @@ class PizzaScheduleController extends Controller
                     // Convert decimal hours to HH:MM:SS with bounds checking
                     $totalHours = $value * 24;
 
+                    $totalHours = round($totalHours, 10);
                     // Cap at 23:59:59 to prevent MySQL time overflow
                     if ($totalHours >= 24) {
                         $totalHours = fmod($totalHours, 24);
