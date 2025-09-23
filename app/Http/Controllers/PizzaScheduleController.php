@@ -624,53 +624,98 @@ class PizzaScheduleController extends Controller
     }
 
     public function exportCsv(Request $request, $date)
-    {
-        try {
-            Log::info("PizzaSchedule CSV Export - Date: {$date}");
+{
+    try {
+        Log::info("PizzaSchedule CSV Export - Date: {$date}");
 
-            // Validate date format
-            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
-                return response()->json(['message' => 'Invalid date format. Use YYYY-MM-DD'], 422);
-            }
+        // Validate date format
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+            return response()->json(['message' => 'Invalid date format. Use YYYY-MM-DD'], 422);
+        }
 
-            // Get data using relationships for proper foreign key handling
-            $empInfoData = EmpInfo::with(['attendanceSchedules', 'weeklyScheduleSummaries'])
-                ->where('schedule_date', $date)
-                ->get();
+        // Get data using relationships for proper foreign key handling
+        $empInfoData = EmpInfo::with(['attendanceSchedules', 'weeklyScheduleSummaries'])
+            ->where('schedule_date', $date)
+            ->get();
 
-            if ($empInfoData->isEmpty()) {
-                return response()->json(['message' => 'No data found for the specified date'], 404);
-            }
+        if ($empInfoData->isEmpty()) {
+            return response()->json(['message' => 'No data found for the specified date'], 404);
+        }
 
-            // Create reverse field mapping (database column to JSON field name)
-            $reverseFieldMapping = array_flip($this->getFieldMapping());
-            $fieldMapping = $this->getFieldMapping();
+        // Create reverse field mapping (database column to JSON field name)
+        $reverseFieldMapping = array_flip($this->getFieldMapping());
+        $fieldMapping = $this->getFieldMapping();
 
-            // Prepare CSV data
-            $csvData = [];
+        // Prepare CSV data
+        $csvData = [];
 
-            // Headers - EXACT SAME AS BEFORE
-            $headers = ['ScheduleDate', 'Store'];
-            foreach ($fieldMapping as $jsonField => $dbColumn) {
-                $headers[] = $jsonField;
-            }
-            $csvData[] = $headers;
+        // Headers - Add shift_count
+        $headers = ['ScheduleDate', 'Store', 'Shift_Count'];
+        foreach ($fieldMapping as $jsonField => $dbColumn) {
+            $headers[] = $jsonField;
+        }
+        $csvData[] = $headers;
 
-            // Process each EmpInfo record and its related data
-            foreach ($empInfoData as $empInfo) {
-                // For each emp_info, we need to handle multiple attendance and weekly summary records
-                $attendanceRecords = $empInfo->attendanceSchedules;
-                $weeklyRecords = $empInfo->weeklyScheduleSummaries;
+        // Process each EmpInfo record and its related data
+        foreach ($empInfoData as $empInfo) {
+            // For each emp_info, we need to handle multiple attendance and weekly summary records
+            $attendanceRecords = $empInfo->attendanceSchedules->sortBy('shift_count');
+            $weeklyRecords = $empInfo->weeklyScheduleSummaries->sortBy('shift_count');
 
-                // If no child records, create one row with just emp_info data
-                if ($attendanceRecords->isEmpty() && $weeklyRecords->isEmpty()) {
+            // If no child records, create one row with just emp_info data
+            if ($attendanceRecords->isEmpty() && $weeklyRecords->isEmpty()) {
+                $row = [
+                    'ScheduleDate' => $date,
+                    'Store' => $empInfo->store,
+                    'Shift_Count' => 1 // Default shift count for emp_info only records
+                ];
+
+                foreach ($fieldMapping as $jsonField => $dbColumn) {
+                    $value = $empInfo->getAttribute($dbColumn);
+                    $row[$jsonField] = $this->formatCsvValue($value, $dbColumn);
+                }
+
+                $orderedRow = [];
+                foreach ($headers as $header) {
+                    $orderedRow[] = $row[$header] ?? '';
+                }
+                $csvData[] = $orderedRow;
+            } else {
+                // Create combined rows - one per unique shift
+                $maxShifts = max($attendanceRecords->count(), $weeklyRecords->count());
+
+                for ($shiftIndex = 0; $shiftIndex < max(1, $maxShifts); $shiftIndex++) {
+                    $attendance = $attendanceRecords->get($shiftIndex);
+                    $weekly = $weeklyRecords->get($shiftIndex);
+
+                    // Determine shift_count from the records
+                    $shiftCount = null;
+                    if ($attendance) {
+                        $shiftCount = $attendance->shift_count;
+                    } elseif ($weekly) {
+                        $shiftCount = $weekly->shift_count;
+                    } else {
+                        $shiftCount = $shiftIndex + 1; // Fallback
+                    }
+
                     $row = [
                         'ScheduleDate' => $date,
-                        'Store' => $empInfo->store
+                        'Store' => $empInfo->store,
+                        'Shift_Count' => $shiftCount
                     ];
 
                     foreach ($fieldMapping as $jsonField => $dbColumn) {
-                        $value = $empInfo->getAttribute($dbColumn);
+                        $value = null;
+
+                        // Priority: EmpInfo -> Attendance -> Weekly
+                        if ($empInfo->getAttribute($dbColumn) !== null) {
+                            $value = $empInfo->getAttribute($dbColumn);
+                        } elseif ($attendance && $attendance->getAttribute($dbColumn) !== null) {
+                            $value = $attendance->getAttribute($dbColumn);
+                        } elseif ($weekly && $weekly->getAttribute($dbColumn) !== null) {
+                            $value = $weekly->getAttribute($dbColumn);
+                        }
+
                         $row[$jsonField] = $this->formatCsvValue($value, $dbColumn);
                     }
 
@@ -679,160 +724,128 @@ class PizzaScheduleController extends Controller
                         $orderedRow[] = $row[$header] ?? '';
                     }
                     $csvData[] = $orderedRow;
-                } else {
-                    // Create combined rows - one per unique shift
-                    $maxShifts = max($attendanceRecords->count(), $weeklyRecords->count());
-
-                    for ($shiftIndex = 0; $shiftIndex < max(1, $maxShifts); $shiftIndex++) {
-                        $row = [
-                            'ScheduleDate' => $date,
-                            'Store' => $empInfo->store
-                        ];
-
-                        $attendance = $attendanceRecords->get($shiftIndex);
-                        $weekly = $weeklyRecords->get($shiftIndex);
-
-                        foreach ($fieldMapping as $jsonField => $dbColumn) {
-                            $value = null;
-
-                            // Priority: EmpInfo -> Attendance -> Weekly
-                            if ($empInfo->getAttribute($dbColumn) !== null) {
-                                $value = $empInfo->getAttribute($dbColumn);
-                            } elseif ($attendance && $attendance->getAttribute($dbColumn) !== null) {
-                                $value = $attendance->getAttribute($dbColumn);
-                            } elseif ($weekly && $weekly->getAttribute($dbColumn) !== null) {
-                                $value = $weekly->getAttribute($dbColumn);
-                            }
-
-                            $row[$jsonField] = $this->formatCsvValue($value, $dbColumn);
-                        }
-
-                        $orderedRow = [];
-                        foreach ($headers as $header) {
-                            $orderedRow[] = $row[$header] ?? '';
-                        }
-                        $csvData[] = $orderedRow;
-                    }
                 }
             }
+        }
 
-            // Generate CSV content
-            $csvContent = $this->arrayToCsv($csvData);
+        // Generate CSV content
+        $csvContent = $this->arrayToCsv($csvData);
 
-            // Filename includes date only (data from all stores)
-            $filename = "pizza_schedule_all_stores_{$date}.csv";
+        // Filename includes date only (data from all stores)
+        $filename = "pizza_schedule_all_stores_{$date}.csv";
 
-            Log::info("PizzaSchedule CSV Export - Successfully exported " . (count($csvData) - 1) . " records from all stores");
+        Log::info("PizzaSchedule CSV Export - Successfully exported " . (count($csvData) - 1) . " records from all stores");
 
-            return response($csvContent)
-                ->header('Content-Type', 'text/csv')
-                ->header('Content-Disposition', "attachment; filename=\"{$filename}\"")
-                ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
-                ->header('Pragma', 'no-cache')
-                ->header('Expires', '0');
+        return response($csvContent)
+            ->header('Content-Type', 'text/csv')
+            ->header('Content-Disposition', "attachment; filename=\"{$filename}\"")
+            ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', '0');
 
-        } catch (\Exception $e) {
-            Log::error('PizzaSchedule CSV export error: ' . $e->getMessage());
-            Log::error('Stack trace: ' . $e->getTraceAsString());
+    } catch (\Exception $e) {
+        Log::error('PizzaSchedule CSV export error: ' . $e->getMessage());
+        Log::error('Stack trace: ' . $e->getTraceAsString());
 
-            return response()->json([
-                'message' => 'Error occurred during CSV export',
-                'error' => $e->getMessage()
-            ], 500);
+        return response()->json([
+            'message' => 'Error occurred during CSV export',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+
+/**
+ * Format values for CSV export - EXACT SAME AS BEFORE
+ */
+private function formatCsvValue($value, string $column): string
+{
+    if ($value === null) {
+        return '';
+    }
+
+    // Handle date fields - convert back to readable format
+    if (in_array($column, ['hired_date', 'schedule_date', 'dob'])) {
+        if ($value) {
+            try {
+                // Handle both date objects and date strings
+                if (is_string($value)) {
+                    return date('m/d/Y', strtotime($value));
+                }
+                return date('m/d/Y', strtotime($value));
+            } catch (\Exception $e) {
+                return (string)$value;
+            }
         }
     }
 
-    /**
-     * Format values for CSV export - EXACT SAME AS BEFORE
-     */
-    private function formatCsvValue($value, string $column): string
-    {
-        if ($value === null) {
-            return '';
-        }
-
-        // Handle date fields - convert back to readable format
-        if (in_array($column, ['hired_date', 'schedule_date', 'dob'])) {
-            if ($value) {
-                try {
-                    // Handle both date objects and date strings
-                    if (is_string($value)) {
-                        return date('m/d/Y', strtotime($value));
-                    }
-                    return date('m/d/Y', strtotime($value));
-                } catch (\Exception $e) {
-                    return (string)$value;
-                }
+    // Handle time fields - they should already be in HH:MM:SS format from database
+    if ((str_contains($column, '_in') || str_contains($column, '_out')) && $column != "tenure_in_months") {
+        if ($value) {
+            // If it's already a time string, return as is
+            if (is_string($value) && preg_match('/^\d{2}:\d{2}:\d{2}$/', $value)) {
+                return $value;
             }
-        }
-
-        // Handle time fields - they should already be in HH:MM:SS format from database
-        if ((str_contains($column, '_in') || str_contains($column, '_out')) && $column != "tenure_in_months") {
-            if ($value) {
-                // If it's already a time string, return as is
-                if (is_string($value) && preg_match('/^\d{2}:\d{2}:\d{2}$/', $value)) {
-                    return $value;
-                }
-                // If it's a time object, convert to string
-                return (string)$value;
-            }
-            return '';
-        }
-
-        // Handle numeric fields - format appropriately
-        if (is_numeric($value)) {
-            // For currency/pay fields, format with 2 decimals
-            if (in_array($column, [
-                'hourly_base_pay', 'hourly_performance_pay', 'totally_pay',
-                'hourly_base_pay_alt', 'hourly_performance_pay_alt', 'totally_pay_alt', 'total_pay'
-            ])) {
-                return number_format((float)$value, 2, '.', '');
-            }
-
-            // For hours and tenure, format with 2 decimals
-            if (str_contains($column, 'hours') || str_contains($column, 'hrs') ||
-                $column === 'weekly_hours' || $column === 'tenure_in_months' || $column === 'ot_calc') {
-                return number_format((float)$value, 2, '.', '');
-            }
-
-            // For sales fields
-            if (str_contains($column, 'sales')) {
-                return number_format((float)$value, 2, '.', '');
-            }
-
-            // For other numeric fields, preserve original format
+            // If it's a time object, convert to string
             return (string)$value;
         }
+        return '';
+    }
 
-        // Handle boolean fields
-        if (in_array($column, ['is_1099', 'is_1099_alt'])) {
-            return $value ? '1' : '0';
+    // Handle numeric fields - format appropriately
+    if (is_numeric($value)) {
+        // For currency/pay fields, format with 2 decimals
+        if (in_array($column, [
+            'hourly_base_pay', 'hourly_performance_pay', 'totally_pay',
+            'hourly_base_pay_alt', 'hourly_performance_pay_alt', 'totally_pay_alt', 'total_pay'
+        ])) {
+            return number_format((float)$value, 2, '.', '');
         }
 
-        // Return as string, handling any special characters for CSV
+        // For hours and tenure, format with 2 decimals
+        if (str_contains($column, 'hours') || str_contains($column, 'hrs') ||
+            $column === 'weekly_hours' || $column === 'tenure_in_months' || $column === 'ot_calc') {
+            return number_format((float)$value, 2, '.', '');
+        }
+
+        // For sales fields
+        if (str_contains($column, 'sales')) {
+            return number_format((float)$value, 2, '.', '');
+        }
+
+        // For other numeric fields, preserve original format
         return (string)$value;
     }
 
-    /**
-     * Convert array to CSV string - EXACT SAME AS BEFORE
-     */
-    private function arrayToCsv(array $data): string
-    {
-        $output = '';
-
-        foreach ($data as $row) {
-            $csvRow = [];
-            foreach ($row as $field) {
-                $field = (string)$field;
-                // Escape field if it contains comma, quote, or newline
-                if (str_contains($field, ',') || str_contains($field, '"') || str_contains($field, "\n") || str_contains($field, "\r")) {
-                    $field = '"' . str_replace('"', '""', $field) . '"';
-                }
-                $csvRow[] = $field;
-            }
-            $output .= implode(',', $csvRow) . "\n";
-        }
-
-        return $output;
+    // Handle boolean fields
+    if (in_array($column, ['is_1099', 'is_1099_alt'])) {
+        return $value ? '1' : '0';
     }
+
+    // Return as string, handling any special characters for CSV
+    return (string)$value;
+}
+
+/**
+ * Convert array to CSV string - EXACT SAME AS BEFORE
+ */
+private function arrayToCsv(array $data): string
+{
+    $output = '';
+
+    foreach ($data as $row) {
+        $csvRow = [];
+        foreach ($row as $field) {
+            $field = (string)$field;
+            // Escape field if it contains comma, quote, or newline
+            if (str_contains($field, ',') || str_contains($field, '"') || str_contains($field, "\n") || str_contains($field, "\r")) {
+                $field = '"' . str_replace('"', '""', $field) . '"';
+            }
+            $csvRow[] = $field;
+        }
+        $output .= implode(',', $csvRow) . "\n";
+    }
+
+    return $output;
+}
+
 }
