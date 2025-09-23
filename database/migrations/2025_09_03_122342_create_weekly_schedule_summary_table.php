@@ -14,6 +14,11 @@ return new class extends Migration
             $table->date('schedule_date')->nullable();
             $table->string('name', 50)->nullable();
             $table->bigInteger('emp_id')->nullable();
+
+            // Foreign key reference to schedule_emp_info
+            $table->foreignId('schedule_emp_info_id')->nullable()->constrained('schedule_emp_info')->onDelete('cascade');
+            $table->integer('shift_count')->default(1)->nullable();
+
             $table->integer('x')->nullable();
             $table->integer('oje')->nullable();
             $table->integer('off_both_we')->nullable();
@@ -41,8 +46,10 @@ return new class extends Migration
             $table->decimal('total_pay', 12, 2)->nullable();
             $table->timestamps();
 
+            // Updated unique constraint
+            $table->unique(['store', 'schedule_date', 'schedule_emp_info_id', 'shift_count'], 'weekly_summary_unique');
             $table->index(['emp_id', 'schedule_date']);
-            $table->unique(['store','emp_id', 'schedule_date'], 'weekly_summary_unique');
+            $table->index(['schedule_emp_info_id']);
         });
     }
 

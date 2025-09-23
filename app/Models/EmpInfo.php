@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class EmpInfo extends Model
 {
@@ -32,16 +33,19 @@ class EmpInfo extends Model
         'hours_given' => 'decimal:2',
     ];
 
-    // Relationships
-    public function attendanceSchedule()
+    /**
+     * One EmpInfo record can have many AttendanceSchedule records
+     */
+    public function attendanceSchedules(): HasMany
     {
-        return $this->hasOne(AttendanceSchedule::class, 'emp_id', 'emp_id')
-                    ->where('schedule_date', $this->schedule_date);
+        return $this->hasMany(AttendanceSchedule::class, 'schedule_emp_info_id');
     }
 
-    public function weeklyScheduleSummary()
+    /**
+     * One EmpInfo record can have many WeeklyScheduleSummary records
+     */
+    public function weeklyScheduleSummaries(): HasMany
     {
-        return $this->hasOne(WeeklyScheduleSummary::class, 'emp_id', 'emp_id')
-                    ->where('schedule_date', $this->schedule_date);
+        return $this->hasMany(WeeklyScheduleSummary::class, 'schedule_emp_info_id');
     }
 }

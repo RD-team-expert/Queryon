@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AttendanceSchedule extends Model
 {
@@ -12,7 +13,7 @@ class AttendanceSchedule extends Model
     protected $table = 'attendance_schedule';
 
     protected $fillable = [
-        'store', 'schedule_date', 'name', 'emp_id',
+        'store', 'schedule_date', 'name', 'emp_id', 'schedule_emp_info_id', 'shift_count',
         // Tuesday
         'tue_vci', 'tue_in', 'tue_out', 'tue_status', 'tue_total_hrs', 'tue_op', 'tue_m',
         'tue_l', 'tue_c', 'tue_status_f', 'tue_hours_cost', 'tue_hours', 'tue_sales', 'tue_4hrs',
@@ -56,10 +57,11 @@ class AttendanceSchedule extends Model
         'mon_total_hrs' => 'decimal:2', 'mon_hours_cost' => 'decimal:2', 'mon_hours' => 'decimal:2', 'mon_sales' => 'decimal:2',
     ];
 
-    // Relationship
-    public function empInfo()
+    /**
+     * Each AttendanceSchedule belongs to one EmpInfo record
+     */
+    public function empInfo(): BelongsTo
     {
-        return $this->belongsTo(EmpInfo::class, 'emp_id', 'emp_id')
-                    ->where('schedule_date', $this->schedule_date);
+        return $this->belongsTo(EmpInfo::class, 'schedule_emp_info_id');
     }
 }

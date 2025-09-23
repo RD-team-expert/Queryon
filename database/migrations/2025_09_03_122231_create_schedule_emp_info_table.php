@@ -46,8 +46,9 @@ return new class extends Migration
             $table->decimal('hours_given', 12, 2)->nullable();
             $table->timestamps();
 
+            // Updated unique constraint to only use store and schedule_date
+            $table->unique(['store', 'schedule_date', 'emp_id'], 'emp_info_unique');
             $table->index(['emp_id', 'schedule_date']);
-            $table->unique(['store','emp_id', 'schedule_date'], 'emp_info_unique');
         });
     }
 

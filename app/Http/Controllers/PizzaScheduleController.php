@@ -9,7 +9,6 @@ use App\Models\WeeklyScheduleSummary;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 
-
 class PizzaScheduleController extends Controller
 {
     public function store(Request $request)
@@ -17,6 +16,7 @@ class PizzaScheduleController extends Controller
         try {
             $jsonData = $request->json()->all();
             Log::info("PizzaSchedule - Received JSON data:\n" . json_encode($jsonData, JSON_PRETTY_PRINT));
+
             if (!isset($jsonData['rows']) || !is_array($jsonData['rows'])) {
                 return response()->json(['message' => 'Invalid data: rows missing or not an array'], 422);
             }
@@ -31,67 +31,106 @@ class PizzaScheduleController extends Controller
             $weeklySummaryData = [];
 
             foreach ($rows as $index => $row) {
-    try {
-        $empRow = [
-            'store' => $store,
-            'schedule_date' => $scheduleDate
-        ];
-        $attRow = [
-            'store' => $store,
-            'schedule_date' => $scheduleDate
-        ];
-        $weekRow = [
-            'store' => $store,
-            'schedule_date' => $scheduleDate
-        ];
-        foreach ($row as $jsonKey => $value) {
-            if (!isset($fieldMapping[$jsonKey])) continue;
+                try {
+                    $empRow = [
+                        'store' => $store,
+                        'schedule_date' => $scheduleDate
+                    ];
+                    $attRow = [
+                        'store' => $store,
+                        'schedule_date' => $scheduleDate
+                    ];
+                    $weekRow = [
+                        'store' => $store,
+                        'schedule_date' => $scheduleDate
+                    ];
 
-            $dbColumn = $fieldMapping[$jsonKey];
-            $processedValue = $this->processFieldValue($value, $dbColumn);
-            // Add emp_id and name to all tables for proper relationships and identification
-            if ($dbColumn === 'emp_id' || $dbColumn === 'name') {
-                $empRow[$dbColumn] = $processedValue;
-                $attRow[$dbColumn] = $processedValue;
-                $weekRow[$dbColumn] = $processedValue;
-            } else {
-                // Determine which table the field belongs to
-                if ($this->isEmpInfoField($dbColumn)) {
-                    $empRow[$dbColumn] = $processedValue;
-                } elseif ($this->isAttendanceField($dbColumn)) {
-                    $attRow[$dbColumn] = $processedValue;
-                } elseif ($this->isWeeklySummaryField($dbColumn)) {
-                    $weekRow[$dbColumn] = $processedValue;
+                    foreach ($row as $jsonKey => $value) {
+                        if (!isset($fieldMapping[$jsonKey])) continue;
+
+                        $dbColumn = $fieldMapping[$jsonKey];
+                        $processedValue = $this->processFieldValue($value, $dbColumn);
+
+                        // Add emp_id and name to all tables for proper relationships and identification
+                        if ($dbColumn === 'emp_id' || $dbColumn === 'name') {
+                            $empRow[$dbColumn] = $processedValue;
+                            $attRow[$dbColumn] = $processedValue;
+                            $weekRow[$dbColumn] = $processedValue;
+                        } else {
+                            // Determine which table the field belongs to
+                            if ($this->isEmpInfoField($dbColumn)) {
+                                $empRow[$dbColumn] = $processedValue;
+                            } elseif ($this->isAttendanceField($dbColumn)) {
+                                $attRow[$dbColumn] = $processedValue;
+                            } elseif ($this->isWeeklySummaryField($dbColumn)) {
+                                $weekRow[$dbColumn] = $processedValue;
+                            }
+                        }
+                    }
+
+                    $empInfoData[] = $empRow;
+                    $attendanceData[] = $attRow;
+                    $weeklySummaryData[] = $weekRow;
+                } catch (\Exception $e) {
+                    Log::warning("PizzaSchedule - Error processing row {$index}: " . $e->getMessage());
                 }
             }
-
-        }
-        $empInfoData[] = $empRow;
-        $attendanceData[] = $attRow;
-        $weeklySummaryData[] = $weekRow;
-    } catch (\Exception $e) {
-        Log::warning("PizzaSchedule - Error processing row {$index}: " . $e->getMessage());
-    }
-}
 
             if (empty($empInfoData)) {
                 return response()->json(['message' => 'No valid employee info data to process'], 422);
             }
 
+            Log::info("Built arrays - EmpInfo: " . count($empInfoData) . ", Attendance: " . count($attendanceData) . ", Weekly: " . count($weeklySummaryData));
+
             $totalProcessed = 0;
 
             DB::transaction(function () use ($empInfoData, $attendanceData, $weeklySummaryData, &$totalProcessed) {
-                // Upsert Employee Info
-                $this->chunkUpsert(EmpInfo::class, $empInfoData, ['store','emp_id', 'schedule_date']);
+                // Step 1: Upsert EmpInfo with proper unique constraint (store, schedule_date, emp_id)
+                $this->chunkUpsert(EmpInfo::class, $empInfoData, ['store', 'schedule_date', 'emp_id']);
                 Log::info("PizzaSchedule - Upserted " . count($empInfoData) . " employee info records");
 
-                // Upsert Attendance Schedule
-                $this->chunkUpsert(AttendanceSchedule::class, $attendanceData, ['store','emp_id', 'schedule_date']);
-                Log::info("PizzaSchedule - Upserted " . count($attendanceData) . " attendance schedule records");
+                // Step 2: Get the created/updated EmpInfo records and map them by emp_id
+                $empInfoRecords = EmpInfo::where('store', $empInfoData[0]['store'])
+                    ->where('schedule_date', $empInfoData[0]['schedule_date'])
+                    ->get();
 
-                // Upsert Weekly Schedule Summary
-                $this->chunkUpsert(WeeklyScheduleSummary::class, $weeklySummaryData, ['store','emp_id', 'schedule_date']);
-                Log::info("PizzaSchedule - Upserted " . count($weeklySummaryData) . " weekly summary records");
+                Log::info("Found " . count($empInfoRecords) . " EmpInfo records after upsert");
+
+                $empInfoMap = [];
+                foreach ($empInfoRecords as $record) {
+                    $empInfoMap[$record->emp_id] = $record->id;
+                }
+
+                // Step 3: Process attendance data with proper batch-aware shift counting
+                $processedAttendanceData = $this->processShiftCounts(
+                    AttendanceSchedule::class,
+                    $attendanceData,
+                    $empInfoMap
+                );
+
+                // Step 4: Process weekly summary data with proper batch-aware shift counting
+                $processedWeeklySummaryData = $this->processShiftCounts(
+                    WeeklyScheduleSummary::class,
+                    $weeklySummaryData,
+                    $empInfoMap
+                );
+
+                // Step 5: Upsert child records
+                if (!empty($processedAttendanceData)) {
+                    $this->chunkUpsert(AttendanceSchedule::class, $processedAttendanceData,
+                        ['store', 'schedule_date', 'schedule_emp_info_id', 'shift_count']);
+                    Log::info("PizzaSchedule - Upserted " . count($processedAttendanceData) . " attendance schedule records");
+                } else {
+                    Log::warning("No attendance data to upsert");
+                }
+
+                if (!empty($processedWeeklySummaryData)) {
+                    $this->chunkUpsert(WeeklyScheduleSummary::class, $processedWeeklySummaryData,
+                        ['store', 'schedule_date', 'schedule_emp_info_id', 'shift_count']);
+                    Log::info("PizzaSchedule - Upserted " . count($processedWeeklySummaryData) . " weekly summary records");
+                } else {
+                    Log::warning("No weekly summary data to upsert");
+                }
 
                 $totalProcessed = count($empInfoData);
             });
@@ -104,8 +143,8 @@ class PizzaScheduleController extends Controller
                 'total_received' => count($rows),
                 'tables_updated' => [
                     'emp_info' => count($empInfoData),
-                    'attendance_schedule' => count($attendanceData),
-                    'weekly_schedule_summary' => count($weeklySummaryData)
+                    'attendance_schedule' => count($processedAttendanceData ?? []),
+                    'weekly_schedule_summary' => count($processedWeeklySummaryData ?? [])
                 ]
             ]);
 
@@ -113,32 +152,105 @@ class PizzaScheduleController extends Controller
             Log::error('PizzaSchedule upsert error: ' . $e->getMessage());
             Log::error('Stack trace: ' . $e->getTraceAsString());
 
-            if (str_contains($e->getMessage(), 'MySQL server has gone away')) {
-                return response()->json([
-                    'message' => 'Database connection timeout. Please try with smaller data sets or contact administrator.',
-                    'error' => 'MySQL timeout error'
-                ], 500);
-            }
-
-            if (str_contains($e->getMessage(), 'Data truncated')) {
-                return response()->json([
-                    'message' => 'Data truncation error. Database schema may need to be updated. Please run migrations and try again.',
-                    'error' => 'Data truncation error'
-                ], 422);
-            }
-
-            if (str_contains($e->getMessage(), 'Duplicate entry')) {
-                return response()->json([
-                    'message' => 'Duplicate entry found during upsert operation.',
-                    'error' => 'Duplicate key error'
-                ], 422);
-            }
-
             return response()->json([
                 'message' => 'Server error occurred during upsert',
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Process shift counts for a batch of data, handling multiple shifts per employee
+     */
+    private function processShiftCounts($model, array $data, array $empInfoMap): array
+    {
+        $processedData = [];
+        $employeeShiftCounters = []; // Track shift counts per employee in this batch
+
+        foreach ($data as $row) {
+            if (!isset($empInfoMap[$row['emp_id']])) {
+                Log::warning("No EmpInfo found for emp_id: " . $row['emp_id']);
+                continue;
+            }
+
+            $row['schedule_emp_info_id'] = $empInfoMap[$row['emp_id']];
+            $empInfoId = $row['schedule_emp_info_id'];
+
+            // Initialize counter for this employee if not exists
+            if (!isset($employeeShiftCounters[$empInfoId])) {
+                // Get the max existing shift count for this employee from database
+                $maxExistingShift = $model::where('store', $row['store'])
+                    ->where('schedule_date', $row['schedule_date'])
+                    ->where('schedule_emp_info_id', $empInfoId)
+                    ->max('shift_count') ?? 0;
+
+                $employeeShiftCounters[$empInfoId] = $maxExistingShift;
+                Log::info("Initialized shift counter for emp_id {$row['emp_id']} (schedule_emp_info_id: {$empInfoId}) starting from: " . $employeeShiftCounters[$empInfoId]);
+            }
+
+            // Check if this exact content already exists in database
+            $existingRecord = $this->findExactMatch($model, $row);
+
+            if ($existingRecord) {
+                // Exact same content exists, use existing shift_count for upsert
+                $row['shift_count'] = $existingRecord->shift_count;
+                Log::info("Found exact match for emp_id {$row['emp_id']}, reusing shift_count: {$existingRecord->shift_count}");
+            } else {
+                // New content, increment shift count
+                $employeeShiftCounters[$empInfoId]++;
+                $row['shift_count'] = $employeeShiftCounters[$empInfoId];
+                Log::info("New shift for emp_id {$row['emp_id']}, assigned shift_count: {$row['shift_count']}");
+            }
+
+            $processedData[] = $row;
+        }
+
+        return $processedData;
+    }
+
+    /**
+     * Find exact matching record in database based on content
+     */
+    private function findExactMatch($model, array $newData)
+    {
+        $existingRecords = $model::where('store', $newData['store'])
+            ->where('schedule_date', $newData['schedule_date'])
+            ->where('schedule_emp_info_id', $newData['schedule_emp_info_id'])
+            ->get();
+
+        foreach ($existingRecords as $existing) {
+            if ($this->contentMatches($existing->toArray(), $newData)) {
+                return $existing;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Simple content matching
+     */
+    private function contentMatches($existingData, $newData): bool
+    {
+        $excludeFields = ['id', 'created_at', 'updated_at', 'store', 'schedule_date', 'schedule_emp_info_id', 'shift_count', 'emp_id', 'name'];
+
+        foreach ($newData as $field => $newValue) {
+            if (in_array($field, $excludeFields)) {
+                continue;
+            }
+
+            $existingValue = $existingData[$field] ?? null;
+
+            // Handle null/empty comparisons
+            $existingValue = ($existingValue === '' || $existingValue === null) ? null : $existingValue;
+            $newValue = ($newValue === '' || $newValue === null) ? null : $newValue;
+
+            if ($existingValue != $newValue) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -163,7 +275,7 @@ class PizzaScheduleController extends Controller
     private function isAttendanceField(string $field): bool
     {
         $attFields = [
-            'store', 'schedule_date', 'name', 'emp_id',
+            'store', 'schedule_date', 'name', 'emp_id', 'schedule_emp_info_id', 'shift_count',
             // All daily schedule fields (Tuesday through Monday)
             'tue_vci', 'tue_in', 'tue_out', 'tue_status', 'tue_total_hrs', 'tue_op', 'tue_m', 'tue_l', 'tue_c',
             'tue_status_f', 'tue_hours_cost', 'tue_hours', 'tue_sales', 'tue_4hrs',
@@ -189,7 +301,8 @@ class PizzaScheduleController extends Controller
     private function isWeeklySummaryField(string $field): bool
     {
         $weeklyFields = [
-            'store', 'schedule_date', 'name', 'emp_id', 'x', 'oje', 'off_both_we', 'status_not_filled', 'hours_not_given',
+            'store', 'schedule_date', 'name', 'emp_id', 'schedule_emp_info_id', 'shift_count',
+            'x', 'oje', 'off_both_we', 'status_not_filled', 'hours_not_given',
             'dh_not_scheduled', 'headcount', 'weekend_not_filling_status', 'weekly_hours', 'ot_calc', 'both_weekends', 'px',
             't', 're', 'vci87', 'excused_absence', 'unexcused_absence', 'late', 'tenure_in_months',
             'hourly_base_pay_alt', 'hourly_performance_pay_alt', 'totally_pay_alt', 'position_alt', 'is_1099_alt', 'total_pay'
@@ -217,9 +330,7 @@ class PizzaScheduleController extends Controller
         }
     }
 
-    /**
-     * Map JSON field names to database column names
-     */
+    // Keep all your other methods the same (getFieldMapping, processFieldValue, exportCsv, etc.)
     private function getFieldMapping(): array
     {
         return [
@@ -257,7 +368,7 @@ class PizzaScheduleController extends Controller
             'Maximum hours' => 'maximum_hours',
             'Hours given' => 'hours_given',
 
-            // Tuesday fields
+            // Tuesday through Monday fields... (same as before)
             'Tue_VCI' => 'tue_vci',
             'Tue_IN' => 'tue_in',
             'Tue_OUT' => 'tue_out',
@@ -273,7 +384,6 @@ class PizzaScheduleController extends Controller
             'Tue_Sales' => 'tue_sales',
             'Tue_4hrs' => 'tue_4hrs',
 
-            // Wednesday fields
             'Wed_VC' => 'wed_vc',
             'Wed_IN' => 'wed_in',
             'Wed_OUT' => 'wed_out',
@@ -289,7 +399,6 @@ class PizzaScheduleController extends Controller
             'Wed_Sales' => 'wed_sales',
             'Wed_hrs' => 'wed_hrs',
 
-            // Thursday fields
             'Thu_VCI' => 'thu_vci',
             'Thu_IN' => 'thu_in',
             'Thu_OUT' => 'thu_out',
@@ -305,7 +414,6 @@ class PizzaScheduleController extends Controller
             'Thu_Sales' => 'thu_sales',
             'Thu_4hrs' => 'thu_4hrs',
 
-            // Friday fields
             'Fri_VCI30' => 'fri_vci30',
             'Fri_IN' => 'fri_in',
             'Fri_OUT' => 'fri_out',
@@ -321,7 +429,6 @@ class PizzaScheduleController extends Controller
             'Fri_Sales' => 'fri_sales',
             'Fri_4hrs' => 'fri_4hrs',
 
-            // Saturday fields
             'Sat_VCI44' => 'sat_vci44',
             'Sat_IN' => 'sat_in',
             'Sat_OUT' => 'sat_out',
@@ -337,7 +444,6 @@ class PizzaScheduleController extends Controller
             'Sat_Sales' => 'sat_sales',
             'Sat_4hrs' => 'sat_4hrs',
 
-            // Sunday fields
             'Sun_VCI' => 'sun_vci',
             'Sun_IN' => 'sun_in',
             'Sun_OUT' => 'sun_out',
@@ -353,7 +459,6 @@ class PizzaScheduleController extends Controller
             'Sun_Sales' => 'sun_sales',
             'Sun_4hrs' => 'sun_4hrs',
 
-            // Monday fields
             'Mon_VCI' => 'mon_vci',
             'Mon_IN' => 'mon_in',
             'Mon_OUT' => 'mon_out',
@@ -398,9 +503,6 @@ class PizzaScheduleController extends Controller
         ];
     }
 
-    /**
-     * Process field values for proper data types with better validation
-     */
     private function processFieldValue($value, string $column): mixed
     {
         // Handle null values
@@ -464,14 +566,11 @@ class PizzaScheduleController extends Controller
         }
 
         // Special handling for tenure_in_months as string
-        // Add more explicit logging for tenure_in_months processing
         if ($column === 'tenure_in_months') {
-    $decimalValue = is_numeric($value) ? round((float) $value, 2) : null;
-    Log::info("Processing tenure_in_months: original value = {$value}, converted to decimal = {$decimalValue}");
-    return $decimalValue;
-}
-
-
+            $decimalValue = is_numeric($value) ? round((float) $value, 2) : null;
+            Log::info("Processing tenure_in_months: original value = {$value}, converted to decimal = {$decimalValue}");
+            return $decimalValue;
+        }
 
         // Handle decimal fields with precision limits
         if (in_array($column, [
@@ -513,7 +612,6 @@ class PizzaScheduleController extends Controller
                 in_array($column, ['tue_l', 'wed_l', 'thu_l', 'fri_l', 'sat_l', 'sun_l', 'mon_l']) => 2,
                 in_array($column, ['tue_c', 'wed_c', 'thu_c', 'fri_c', 'sat_c', 'sun_c', 'mon_c']) => 2,
                 $column === 'notes' => null,
-
                 default => 50
             };
             if ($maxLength && strlen($value) > $maxLength) {
@@ -525,239 +623,216 @@ class PizzaScheduleController extends Controller
         return $value;
     }
 
-public function exportCsv(Request $request, $date)
-{
-    try {
-        Log::info("PizzaSchedule CSV Export - Date: {$date}");
+    public function exportCsv(Request $request, $date)
+    {
+        try {
+            Log::info("PizzaSchedule CSV Export - Date: {$date}");
 
-        // Validate date format
-        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
-            return response()->json(['message' => 'Invalid date format. Use YYYY-MM-DD'], 422);
-        }
+            // Validate date format
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+                return response()->json(['message' => 'Invalid date format. Use YYYY-MM-DD'], 422);
+            }
 
-        // Get data from all three tables (filtering ONLY by date - includes ALL stores)
-        $empInfoData = EmpInfo::where('schedule_date', $date)
-            ->get()
-            ->toArray();
+            // Get data using relationships for proper foreign key handling
+            $empInfoData = EmpInfo::with(['attendanceSchedules', 'weeklyScheduleSummaries'])
+                ->where('schedule_date', $date)
+                ->get();
 
-        $attendanceData = AttendanceSchedule::where('schedule_date', $date)
-            ->get()
-            ->map(function($item) {
-                return $item->toArray();
-            })
-            ->toArray();
+            if ($empInfoData->isEmpty()) {
+                return response()->json(['message' => 'No data found for the specified date'], 404);
+            }
 
-        $weeklySummaryData = WeeklyScheduleSummary::where('schedule_date', $date)
-            ->get()
-            ->toArray();
+            // Create reverse field mapping (database column to JSON field name)
+            $reverseFieldMapping = array_flip($this->getFieldMapping());
+            $fieldMapping = $this->getFieldMapping();
 
-        if (empty($empInfoData) && empty($attendanceData) && empty($weeklySummaryData)) {
-            return response()->json(['message' => 'No data found for the specified date'], 404);
-        }
+            // Prepare CSV data
+            $csvData = [];
 
-        // Create reverse field mapping (database column to JSON field name)
-        $reverseFieldMapping = array_flip($this->getFieldMapping());
-
-        // Get all unique employee IDs with their store combinations
-        $allEmpStoreIds = collect()
-            ->merge(collect($empInfoData)->map(function($item) {
-                return $item['emp_id'] . '|' . $item['store'];
-            }))
-            ->merge(collect($attendanceData)->map(function($item) {
-                return $item['emp_id'] . '|' . $item['store'];
-            }))
-            ->merge(collect($weeklySummaryData)->map(function($item) {
-                return $item['emp_id'] . '|' . $item['store'];
-            }))
-            ->unique()
-            ->filter()
-            ->sort()
-            ->values();
-
-        if ($allEmpStoreIds->isEmpty()) {
-            return response()->json(['message' => 'No employee data found'], 404);
-        }
-
-        // Index data by emp_id + store combination to avoid overwrites
-        $empInfoByKey = collect($empInfoData)->keyBy(function($item) {
-            return $item['emp_id'] . '|' . $item['store'];
-        });
-        $attendanceByKey = collect($attendanceData)->keyBy(function($item) {
-            return $item['emp_id'] . '|' . $item['store'];
-        });
-        $weeklyByKey = collect($weeklySummaryData)->keyBy(function($item) {
-            return $item['emp_id'] . '|' . $item['store'];
-        });
-
-        // Prepare CSV data
-        $csvData = [];
-
-        // Headers - Include Store column
-        $headers = ['ScheduleDate', 'Store'];
-        $fieldMapping = $this->getFieldMapping();
-        foreach ($fieldMapping as $jsonField => $dbColumn) {
-            $headers[] = $jsonField;
-        }
-        $csvData[] = $headers;
-
-        // Data rows - Process ALL employees from ALL stores
-        foreach ($allEmpStoreIds as $empStoreId) {
-            list($empId, $store) = explode('|', $empStoreId);
-
-            $row = [
-                'ScheduleDate' => $date,
-                'Store' => $store
-            ];
-
-            $empInfo = $empInfoByKey->get($empStoreId);
-            $attendance = $attendanceByKey->get($empStoreId);
-            $weekly = $weeklyByKey->get($empStoreId);
-
-            // Process all other fields from field mapping
+            // Headers - EXACT SAME AS BEFORE
+            $headers = ['ScheduleDate', 'Store'];
             foreach ($fieldMapping as $jsonField => $dbColumn) {
-                $value = null;
+                $headers[] = $jsonField;
+            }
+            $csvData[] = $headers;
 
-                if ($empInfo && isset($empInfo[$dbColumn])) {
-                    $value = $empInfo[$dbColumn];
-                } elseif ($attendance && isset($attendance[$dbColumn])) {
-                    $value = $attendance[$dbColumn];
-                } elseif ($weekly && isset($weekly[$dbColumn])) {
-                    $value = $weekly[$dbColumn];
+            // Process each EmpInfo record and its related data
+            foreach ($empInfoData as $empInfo) {
+                // For each emp_info, we need to handle multiple attendance and weekly summary records
+                $attendanceRecords = $empInfo->attendanceSchedules;
+                $weeklyRecords = $empInfo->weeklyScheduleSummaries;
+
+                // If no child records, create one row with just emp_info data
+                if ($attendanceRecords->isEmpty() && $weeklyRecords->isEmpty()) {
+                    $row = [
+                        'ScheduleDate' => $date,
+                        'Store' => $empInfo->store
+                    ];
+
+                    foreach ($fieldMapping as $jsonField => $dbColumn) {
+                        $value = $empInfo->getAttribute($dbColumn);
+                        $row[$jsonField] = $this->formatCsvValue($value, $dbColumn);
+                    }
+
+                    $orderedRow = [];
+                    foreach ($headers as $header) {
+                        $orderedRow[] = $row[$header] ?? '';
+                    }
+                    $csvData[] = $orderedRow;
+                } else {
+                    // Create combined rows - one per unique shift
+                    $maxShifts = max($attendanceRecords->count(), $weeklyRecords->count());
+
+                    for ($shiftIndex = 0; $shiftIndex < max(1, $maxShifts); $shiftIndex++) {
+                        $row = [
+                            'ScheduleDate' => $date,
+                            'Store' => $empInfo->store
+                        ];
+
+                        $attendance = $attendanceRecords->get($shiftIndex);
+                        $weekly = $weeklyRecords->get($shiftIndex);
+
+                        foreach ($fieldMapping as $jsonField => $dbColumn) {
+                            $value = null;
+
+                            // Priority: EmpInfo -> Attendance -> Weekly
+                            if ($empInfo->getAttribute($dbColumn) !== null) {
+                                $value = $empInfo->getAttribute($dbColumn);
+                            } elseif ($attendance && $attendance->getAttribute($dbColumn) !== null) {
+                                $value = $attendance->getAttribute($dbColumn);
+                            } elseif ($weekly && $weekly->getAttribute($dbColumn) !== null) {
+                                $value = $weekly->getAttribute($dbColumn);
+                            }
+
+                            $row[$jsonField] = $this->formatCsvValue($value, $dbColumn);
+                        }
+
+                        $orderedRow = [];
+                        foreach ($headers as $header) {
+                            $orderedRow[] = $row[$header] ?? '';
+                        }
+                        $csvData[] = $orderedRow;
+                    }
                 }
-
-                $row[$jsonField] = $this->formatCsvValue($value, $dbColumn);
             }
 
-            // Create ordered row based on headers
-            $orderedRow = [];
-            foreach ($headers as $header) {
-                $orderedRow[] = $row[$header] ?? '';
-            }
+            // Generate CSV content
+            $csvContent = $this->arrayToCsv($csvData);
 
-            $csvData[] = $orderedRow;
+            // Filename includes date only (data from all stores)
+            $filename = "pizza_schedule_all_stores_{$date}.csv";
+
+            Log::info("PizzaSchedule CSV Export - Successfully exported " . (count($csvData) - 1) . " records from all stores");
+
+            return response($csvContent)
+                ->header('Content-Type', 'text/csv')
+                ->header('Content-Disposition', "attachment; filename=\"{$filename}\"")
+                ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', '0');
+
+        } catch (\Exception $e) {
+            Log::error('PizzaSchedule CSV export error: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
+
+            return response()->json([
+                'message' => 'Error occurred during CSV export',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Format values for CSV export - EXACT SAME AS BEFORE
+     */
+    private function formatCsvValue($value, string $column): string
+    {
+        if ($value === null) {
+            return '';
         }
 
-        // Generate CSV content
-        $csvContent = $this->arrayToCsv($csvData);
-
-        // Filename includes date only (data from all stores)
-        $filename = "pizza_schedule_all_stores_{$date}.csv";
-
-        Log::info("PizzaSchedule CSV Export - Successfully exported " . (count($csvData) - 1) . " records from all stores");
-
-        return response($csvContent)
-            ->header('Content-Type', 'text/csv')
-            ->header('Content-Disposition', "attachment; filename=\"{$filename}\"")
-            ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
-            ->header('Pragma', 'no-cache')
-            ->header('Expires', '0');
-
-    } catch (\Exception $e) {
-        Log::error('PizzaSchedule CSV export error: ' . $e->getMessage());
-        Log::error('Stack trace: ' . $e->getTraceAsString());
-
-        return response()->json([
-            'message' => 'Error occurred during CSV export',
-            'error' => $e->getMessage()
-        ], 500);
-    }
-}
-
-
-
-/**
- * Format values for CSV export
- */
-private function formatCsvValue($value, string $column): string
-{
-    if ($value === null) {
-        return '';
-    }
-
-    // Handle date fields - convert back to readable format
-    if (in_array($column, ['hired_date', 'schedule_date', 'dob'])) {
-        if ($value) {
-            try {
-                // Handle both date objects and date strings
-                if (is_string($value)) {
+        // Handle date fields - convert back to readable format
+        if (in_array($column, ['hired_date', 'schedule_date', 'dob'])) {
+            if ($value) {
+                try {
+                    // Handle both date objects and date strings
+                    if (is_string($value)) {
+                        return date('m/d/Y', strtotime($value));
+                    }
                     return date('m/d/Y', strtotime($value));
+                } catch (\Exception $e) {
+                    return (string)$value;
                 }
-                return date('m/d/Y', strtotime($value));
-            } catch (\Exception $e) {
+            }
+        }
+
+        // Handle time fields - they should already be in HH:MM:SS format from database
+        if ((str_contains($column, '_in') || str_contains($column, '_out')) && $column != "tenure_in_months") {
+            if ($value) {
+                // If it's already a time string, return as is
+                if (is_string($value) && preg_match('/^\d{2}:\d{2}:\d{2}$/', $value)) {
+                    return $value;
+                }
+                // If it's a time object, convert to string
                 return (string)$value;
             }
+            return '';
         }
-    }
 
-    // Handle time fields - they should already be in HH:MM:SS format from database
-    if ((str_contains($column, '_in') || str_contains($column, '_out')) && $column != "tenure_in_months") {
-        if ($value) {
-            // If it's already a time string, return as is
-            if (is_string($value) && preg_match('/^\d{2}:\d{2}:\d{2}$/', $value)) {
-                return $value;
+        // Handle numeric fields - format appropriately
+        if (is_numeric($value)) {
+            // For currency/pay fields, format with 2 decimals
+            if (in_array($column, [
+                'hourly_base_pay', 'hourly_performance_pay', 'totally_pay',
+                'hourly_base_pay_alt', 'hourly_performance_pay_alt', 'totally_pay_alt', 'total_pay'
+            ])) {
+                return number_format((float)$value, 2, '.', '');
             }
-            // If it's a time object, convert to string
+
+            // For hours and tenure, format with 2 decimals
+            if (str_contains($column, 'hours') || str_contains($column, 'hrs') ||
+                $column === 'weekly_hours' || $column === 'tenure_in_months' || $column === 'ot_calc') {
+                return number_format((float)$value, 2, '.', '');
+            }
+
+            // For sales fields
+            if (str_contains($column, 'sales')) {
+                return number_format((float)$value, 2, '.', '');
+            }
+
+            // For other numeric fields, preserve original format
             return (string)$value;
         }
-        return '';
-    }
 
-    // Handle numeric fields - format appropriately
-    if (is_numeric($value)) {
-        // For currency/pay fields, format with 2 decimals
-        if (in_array($column, [
-            'hourly_base_pay', 'hourly_performance_pay', 'totally_pay',
-            'hourly_base_pay_alt', 'hourly_performance_pay_alt', 'totally_pay_alt', 'total_pay'
-        ])) {
-            return number_format((float)$value, 2, '.', '');
+        // Handle boolean fields
+        if (in_array($column, ['is_1099', 'is_1099_alt'])) {
+            return $value ? '1' : '0';
         }
 
-        // For hours and tenure, format with 2 decimals
-        if (str_contains($column, 'hours') || str_contains($column, 'hrs') ||
-            $column === 'weekly_hours' || $column === 'tenure_in_months' || $column === 'ot_calc') {
-            return number_format((float)$value, 2, '.', '');
-        }
-
-        // For sales fields
-        if (str_contains($column, 'sales')) {
-            return number_format((float)$value, 2, '.', '');
-        }
-
-        // For other numeric fields, preserve original format
+        // Return as string, handling any special characters for CSV
         return (string)$value;
     }
 
-    // Handle boolean fields
-    if (in_array($column, ['is_1099', 'is_1099_alt'])) {
-        return $value ? '1' : '0';
-    }
+    /**
+     * Convert array to CSV string - EXACT SAME AS BEFORE
+     */
+    private function arrayToCsv(array $data): string
+    {
+        $output = '';
 
-    // Return as string, handling any special characters for CSV
-    return (string)$value;
-}
-
-/**
- * Convert array to CSV string
- */
-private function arrayToCsv(array $data): string
-{
-    $output = '';
-
-    foreach ($data as $row) {
-        $csvRow = [];
-        foreach ($row as $field) {
-            $field = (string)$field;
-            // Escape field if it contains comma, quote, or newline
-            if (str_contains($field, ',') || str_contains($field, '"') || str_contains($field, "\n") || str_contains($field, "\r")) {
-                $field = '"' . str_replace('"', '""', $field) . '"';
+        foreach ($data as $row) {
+            $csvRow = [];
+            foreach ($row as $field) {
+                $field = (string)$field;
+                // Escape field if it contains comma, quote, or newline
+                if (str_contains($field, ',') || str_contains($field, '"') || str_contains($field, "\n") || str_contains($field, "\r")) {
+                    $field = '"' . str_replace('"', '""', $field) . '"';
+                }
+                $csvRow[] = $field;
             }
-            $csvRow[] = $field;
+            $output .= implode(',', $csvRow) . "\n";
         }
-        $output .= implode(',', $csvRow) . "\n";
+
+        return $output;
     }
-
-    return $output;
-}
-
-
 }

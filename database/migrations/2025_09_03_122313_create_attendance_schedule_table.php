@@ -15,6 +15,10 @@ return new class extends Migration
             $table->string('name', 50)->nullable();
             $table->bigInteger('emp_id')->nullable();
 
+            // Foreign key reference to schedule_emp_info
+            $table->foreignId('schedule_emp_info_id')->nullable()->constrained('schedule_emp_info')->onDelete('cascade');
+            $table->integer('shift_count')->default(1)->nullable();
+
             // Tuesday fields
             $table->string('tue_vci', 2)->nullable();
             $table->time('tue_in')->nullable();
@@ -114,7 +118,7 @@ return new class extends Migration
             // Monday fields
             $table->string('mon_vci', 2)->nullable();
             $table->time('mon_in')->nullable();
-            $table->Time('mon_out')->nullable();
+            $table->time('mon_out')->nullable();
             $table->string('mon_status', 20)->nullable();
             $table->decimal('mon_total_hrs', 12, 2)->nullable();
             $table->string('mon_op', 2)->nullable();
@@ -129,8 +133,10 @@ return new class extends Migration
 
             $table->timestamps();
 
+            // Updated unique constraint
+            $table->unique(['store', 'schedule_date', 'schedule_emp_info_id', 'shift_count'], 'attendance_schedule_unique');
             $table->index(['emp_id', 'schedule_date']);
-            $table->unique(['store','emp_id', 'schedule_date'], 'attendance_schedule_unique');
+            $table->index(['schedule_emp_info_id']);
         });
     }
 
