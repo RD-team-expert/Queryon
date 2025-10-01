@@ -13,6 +13,7 @@ class ApplicationInfo extends Model
     protected $table = 'applications_info';
 
     protected $fillable = [
+        'store',
         'add_term_or_change', 'plan_choice', 'last_name', 'first_name',
         'middle_initial', 'dob', 'street_address', 'street_address_2',
         'city', 'state_abbreviation', 'zip', 'phone', 'email_address',

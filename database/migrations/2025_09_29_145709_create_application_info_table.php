@@ -10,6 +10,7 @@ return new class extends Migration
     {
         Schema::create('applications_info', function (Blueprint $table) {
             $table->id();
+            $table->string('store')->nullable();
             $table->string('add_term_or_change')->nullable();
             $table->string('plan_choice')->nullable();
             $table->string('last_name')->nullable();

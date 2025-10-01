@@ -98,3 +98,6 @@ Route::get('/pizza-schedule-wh/{date}', [PizzaScheduleWHController::class, 'expo
 Route::post('health-plan/applications', [HealthPlanController::class, 'create']);
 Route::post('health-plan/applications-update', [HealthPlanController::class, 'update']);
 Route::post('health-plan/applications-delete', [HealthPlanController::class, 'delete']);
+
+Route::get('health-plan/applications-info-csv', [HealthPlanController::class, 'exportApplicationsInfo']);
+Route::get('health-plan/applications-dependents-info-csv', [HealthPlanController::class, 'exportdependentsInfo']);
