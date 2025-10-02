@@ -332,13 +332,13 @@ private function determineCoverageTier(array $personalInfo): ?string
         $planType = $personalInfo['OutpatientPlanTypes'] ?? null;
 
         switch ($planType) {
-            case "Employee Only: $68.50":
+            case "Employee Only: $70.50":
                 return "Member";
-            case "Employee + Spouse: $188.50":
+            case "Employee + Spouse: $190.50":
                 return "Member + Spouse";
-            case "Employee + Children: $160.50":
+            case "Employee + Children: $162.50":
                 return "Member + Child(ren)";
-            case "Family: $280.50":
+            case "Family: $282.50":
                 return "Member + Family";
             default:
                 return null;
@@ -348,13 +348,13 @@ private function determineCoverageTier(array $personalInfo): ?string
         $planType = $personalInfo['OutpatientInpatientPlanTypes'] ?? null;
 
         switch ($planType) {
-            case "Employee Only: $141.50":
+            case "Employee Only: $151":
                 return "Member";
-            case "Employee + Spouse: $428.50":
+            case "Employee + Spouse: $438":
                 return "Member + Spouse";
-            case "Employee + Children: $363.50":
+            case "Employee + Children: $373":
                 return "Member + Child(ren)";
-            case "Family: $650.50":
+            case "Family: $660":
                 return "Member + Family";
             default:
                 return null;
