@@ -167,6 +167,8 @@ class HiringRequestsController extends Controller
         $mappedData = [
             'first_name' => $data['YourRequest']['StoreManagersName']['First'] ?? null,
             'last_name' => $data['YourRequest']['StoreManagersName']['Last'] ?? null,
+            'store' => $data['YourRequest']['StoreNumber']['Label'] ?? null,
+            'date_of_request' => $data['YourRequest']['DateOfTheRequest'] ?? null,
             'num_of_emp_needed' => $data['YourRequest']['HiringNeeds']['NumberOfEmployeesNeeded'] ?? null,
             'desired_start_date' => $data['YourRequest']['HiringNeeds']['DesiredStartDate'] ?? null,
             'additional_notes' => $data['YourRequest']['HiringNeeds']['AdditionalNotes']['DoYouWantToAddAnyNotes'] ?? null,

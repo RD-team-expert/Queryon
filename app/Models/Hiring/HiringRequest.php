@@ -13,6 +13,8 @@ class HiringRequest extends Model
     protected $fillable = [
         'first_name',
         'last_name',
+        'store',
+        'date_of_request',
         'num_of_emp_needed',
         'desired_start_date',
         'additional_notes',
@@ -28,6 +30,7 @@ class HiringRequest extends Model
 
     protected $casts = [
         'desired_start_date' => 'date',
+        'date_of_request' => 'date',
         'supervisors_accept' => 'boolean',
         'cognito_id' => 'integer'
     ];

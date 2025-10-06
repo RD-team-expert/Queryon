@@ -12,6 +12,8 @@ return new class extends Migration
             $table->id();
             $table->string('first_name');
             $table->string('last_name');
+            $table->string('store');
+            $table->date('date_of_request');
             $table->integer('num_of_emp_needed');
             $table->date('desired_start_date')->nullable();
             $table->text('additional_notes')->nullable();

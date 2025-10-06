@@ -23,6 +23,8 @@ class HiringRequestExportController extends Controller
             'id',
             'first_name',
             'last_name',
+            'store',
+            'date_of_request',
             'num_of_emp_needed',
             'desired_start_date',
             'additional_notes',
