@@ -13,6 +13,7 @@ use App\Http\Controllers\PizzaScheduleController;
 use App\Http\Controllers\PizzaScheduleWHController;
 use App\Http\Controllers\Pizza\DSQR_Controller;
 use App\Http\Controllers\HealthPlan\HealthPlanController;
+use App\Http\Controllers\Hiring\HiringRequestsController;
 /**************************  NVT  **********************/
 //********** Employees Data Form **************//
 //create
@@ -101,3 +102,7 @@ Route::post('health-plan/applications-delete', [HealthPlanController::class, 'de
 
 Route::get('health-plan/applications-info-csv', [HealthPlanController::class, 'exportApplicationsInfo']);
 Route::get('health-plan/applications-dependents-info-csv', [HealthPlanController::class, 'exportdependentsInfo']);
+
+Route::post('hiring/applications-create', [HiringRequestsController::class, 'create']);
+Route::post('hiring/applications-update', [HiringRequestsController::class, 'update']);
+Route::post('hiring/applications-delete', [HiringRequestsController::class, 'delete']);
