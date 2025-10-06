@@ -47,4 +47,6 @@ return [
         'cache_ttl' => (int) env('AUTH_DECISION_CACHE_TTL', 30),
     ],
 
+    'excel_secret' => env('X_SECRET_KEY')
+
 ];
