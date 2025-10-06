@@ -49,12 +49,14 @@ class HiringRequestExportController extends Controller
 
             HiringRequest::query()
                 ->orderBy('id')
-                ->chunk(1000, function ($chunk) use ($out, $columns) {
+                ->chunk(1000, function ($chunk) use ($out) {
                     foreach ($chunk as $row) {
                         $data = [
                             $row->id,
                             $row->first_name,
                             $row->last_name,
+                            $row->store,  // ADDED: Missing field
+                            optional($row->date_of_request)->format('Y-m-d'),  // ADDED: Missing field
                             $row->num_of_emp_needed,
                             optional($row->desired_start_date)->format('Y-m-d'),
                             $row->additional_notes,
