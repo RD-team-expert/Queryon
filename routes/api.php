@@ -14,6 +14,7 @@ use App\Http\Controllers\PizzaScheduleWHController;
 use App\Http\Controllers\Pizza\DSQR_Controller;
 use App\Http\Controllers\HealthPlan\HealthPlanController;
 use App\Http\Controllers\Hiring\HiringRequestsController;
+use App\Http\Controllers\Hiring\HiringRequestExportController;
 /**************************  NVT  **********************/
 //********** Employees Data Form **************//
 //create
@@ -71,7 +72,8 @@ Route::middleware('check.secret')->group(function () {
     Route::get('/deposit-delivery/export-excel', [DepositDeliveryController::class, 'exportToExcel']);
     Route::get('/deposit-delivery/export-excel/{start_date?}/{end_date?}/{franchisee_num?}', [DepositDeliveryController::class, 'exportToExcel']);
 
-
+    Route::get( 'hiring/export/requests.csv', [HiringRequestExportController::class, 'exportRequests']);
+    Route::get('hiring/export/hires.csv', [HiringRequestExportController::class, 'exportHires']);
 });
 
 // Json
@@ -106,3 +108,6 @@ Route::get('health-plan/applications-dependents-info-csv', [HealthPlanController
 Route::post('hiring/applications-create', [HiringRequestsController::class, 'create']);
 Route::post('hiring/applications-update', [HiringRequestsController::class, 'update']);
 Route::post('hiring/applications-delete', [HiringRequestsController::class, 'delete']);
+
+
+
