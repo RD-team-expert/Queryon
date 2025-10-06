@@ -72,8 +72,8 @@ Route::middleware('check.secret')->group(function () {
     Route::get('/deposit-delivery/export-excel', [DepositDeliveryController::class, 'exportToExcel']);
     Route::get('/deposit-delivery/export-excel/{start_date?}/{end_date?}/{franchisee_num?}', [DepositDeliveryController::class, 'exportToExcel']);
 
-    Route::get( 'hiring/export/requests.csv', [HiringRequestExportController::class, 'exportRequests']);
-    Route::get('hiring/export/hires.csv', [HiringRequestExportController::class, 'exportHires']);
+    Route::get( 'hiring/export/requests-csv', [HiringRequestExportController::class, 'exportRequests']);
+    Route::get('hiring/export/hires-csv', [HiringRequestExportController::class, 'exportHires']);
 });
 
 // Json
