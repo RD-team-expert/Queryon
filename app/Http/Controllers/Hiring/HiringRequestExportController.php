@@ -55,15 +55,15 @@ class HiringRequestExportController extends Controller
                             $row->id,
                             $row->first_name,
                             $row->last_name,
-                            $row->store,  // ADDED: Missing field
-                            optional($row->date_of_request)->format('Y-m-d'),  // ADDED: Missing field
+                            $row->store,
+                            optional($row->date_of_request)->format('Y-m-d'),
                             $row->num_of_emp_needed,
                             optional($row->desired_start_date)->format('Y-m-d'),
-                            $row->additional_notes,
+                            $this->cleanNewlines($row->additional_notes), // Clean newlines
                             $row->supervisors_first_name,
                             $row->supervisors_last_name,
                             is_null($row->supervisors_accept) ? '' : ($row->supervisors_accept ? '1' : '0'),
-                            $row->supervisors_notes,
+                            $this->cleanNewlines($row->supervisors_notes), // Clean newlines
                             $row->hr_first_name,
                             $row->hr_last_name,
                             $row->hr_num_of_hires,
@@ -141,5 +141,18 @@ class HiringRequestExportController extends Controller
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Clean newlines from text fields
+     */
+    private function cleanNewlines(?string $text): string
+    {
+        if (is_null($text)) {
+            return '';
+        }
+
+        // Replace all types of newlines with a space
+        return preg_replace('/[\r\n]+/', ' ', $text);
     }
 }
