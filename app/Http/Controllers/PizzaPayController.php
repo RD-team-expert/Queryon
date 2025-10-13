@@ -151,4 +151,145 @@ class PizzaPayController extends Controller
             ], 500);
         }
     }
+    public function exportCsv(Request $request)
+{
+    $fileName = 'pizza_av_team_pay_' . date('Y-m-d_His') . '.csv';
+
+    // Get all data or apply filters if needed
+    $query = Pizza_AV_Team_Pay_Model::query();
+
+    // Optional: Add filters based on request parameters
+    if ($request->has('store')) {
+        $query->where('store', $request->store);
+    }
+
+    if ($request->has('date_from')) {
+        $query->where('date', '>=', $request->date_from);
+    }
+
+    if ($request->has('date_to')) {
+        $query->where('date', '<=', $request->date_to);
+    }
+
+    if ($request->has('emp_id')) {
+        $query->where('emp_id', $request->emp_id);
+    }
+
+    $data = $query->get();
+
+    $headers = [
+        "Content-type" => "text/csv",
+        "Content-Disposition" => "attachment; filename=$fileName",
+        "Pragma" => "no-cache",
+        "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
+        "Expires" => "0"
+    ];
+
+    $columns = [
+        'ID',
+        'Store',
+        'Date',
+        'Employee ID',
+        'Name',
+        'Position',
+        'Hourly Pay',
+        'Total Hours',
+        'Total Tips',
+        'Positive',
+        'Money Owed',
+        'Amazon / WM / Others',
+        'BASE PAY',
+        'PERFORMANCE BONUS',
+        'Gross Pay',
+        'Team Profit Sharing',
+        'Bread Boost Bonus',
+        'EXTRA PAY',
+        'TOTAL DEDUCTION',
+        'Tax Allowans',
+        'Rent pmt',
+        'Phone pmt',
+        'Utilities',
+        'Others',
+        'Company Loan',
+        'Legal',
+        'Car',
+        'Labor',
+        'LC Audit',
+        'Customer Service',
+        'Upselling',
+        'Inventory',
+        'PNE Audit Fail',
+        'Sales',
+        'Final Score',
+        'Total Tax',
+        'Tax dif',
+        'AT',
+        'Apt Cost',
+        'Apt Cost Per Store',
+        'Utilities Cost',
+        'Phone Cost',
+        'Created At',
+        'Updated At'
+    ];
+
+    $callback = function() use($data, $columns) {
+        $file = fopen('php://output', 'w');
+        fputcsv($file, $columns);
+
+        foreach ($data as $row) {
+            $csvRow = [
+                $row->id,
+                $row->store,
+                $row->date,
+                $row->emp_id,
+                $row->name,
+                $row->position,
+                $row->hourly_pay,
+                $row->total_hours,
+                $row->total_tips,
+                $row->positive,
+                $row->money_owed,
+                $row->amazon_wm_others,
+                $row->base_pay,
+                $row->performance_bonus,
+                $row->gross_pay,
+                $row->team_profit_sharing,
+                $row->bread_boost_bonus,
+                $row->extra_pay,
+                $row->total_deduction,
+                $row->tax_allowans,
+                $row->rent_pmt,
+                $row->phone_pmt,
+                $row->utilities,
+                $row->others,
+                $row->company_loan,
+                $row->legal,
+                $row->car,
+                $row->labor,
+                $row->lc_audit,
+                $row->customer_service,
+                $row->upselling,
+                $row->inventory,
+                $row->pne_audit_fail,
+                $row->sales,
+                $row->final_score,
+                $row->total_tax,
+                $row->tax_dif,
+                $row->at ? 'Yes' : 'No',
+                $row->apt_cost,
+                $row->apt_cost_per_store,
+                $row->utilities_cost,
+                $row->phone_cost,
+                $row->created_at,
+                $row->updated_at
+            ];
+
+            fputcsv($file, $csvRow);
+        }
+
+        fclose($file);
+    };
+
+    return response()->stream($callback, 200, $headers);
+}
 }

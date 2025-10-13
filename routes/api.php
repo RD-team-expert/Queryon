@@ -76,6 +76,7 @@ Route::middleware('check.secret')->group(function () {
 
     Route::get( 'hiring/export/requests-csv', [HiringRequestExportController::class, 'exportRequests']);
     Route::get('hiring/export/hires-csv', [HiringRequestExportController::class, 'exportHires']);
+    Route::get('/pizza-pay/export', [PizzaPayController::class, 'exportCsv']);
 });
 
 // Json
@@ -112,3 +113,4 @@ Route::post('hiring/applications-update', [HiringRequestsController::class, 'upd
 Route::post('hiring/applications-delete', [HiringRequestsController::class, 'delete']);
 
 Route::post('/pizza-pay', [PizzaPayController::class, 'store']);
+
