@@ -15,6 +15,8 @@ use App\Http\Controllers\Pizza\DSQR_Controller;
 use App\Http\Controllers\HealthPlan\HealthPlanController;
 use App\Http\Controllers\Hiring\HiringRequestsController;
 use App\Http\Controllers\Hiring\HiringRequestExportController;
+
+use App\Http\Controllers\PizzaPayController;
 /**************************  NVT  **********************/
 //********** Employees Data Form **************//
 //create
@@ -109,5 +111,4 @@ Route::post('hiring/applications-create', [HiringRequestsController::class, 'cre
 Route::post('hiring/applications-update', [HiringRequestsController::class, 'update']);
 Route::post('hiring/applications-delete', [HiringRequestsController::class, 'delete']);
 
-
-
+Route::post('/pizza-pay', [PizzaPayController::class, 'store']);
