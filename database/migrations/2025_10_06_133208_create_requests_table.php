@@ -27,6 +27,7 @@ return new class extends Migration
             $table->integer('cognito_id');
 
             $table->unique('cognito_id');
+            
         });
     }
 
