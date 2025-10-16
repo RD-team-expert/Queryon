@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class HiringRequest extends Model
 {
     protected $table = 'hiring_requests';
-    public $timestamps = false;
+    public $timestamps = true;
 
     protected $fillable = [
         'first_name',
