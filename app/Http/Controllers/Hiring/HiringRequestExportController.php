@@ -36,6 +36,9 @@ class HiringRequestExportController extends Controller
             'hr_last_name',
             'hr_num_of_hires',
             'cognito_id',
+            'created_at',
+            'updated_at',
+
         ];
 
         $callback = function () use ($columns) {
@@ -68,6 +71,8 @@ class HiringRequestExportController extends Controller
                             $row->hr_last_name,
                             $row->hr_num_of_hires,
                             $row->cognito_id,
+                            optional($row->created_at)->format('Y-m-d H:i:s'),
+                            optional($row->updated_at)->format('Y-m-d H:i:s'),
                         ];
                         fputcsv($out, $data);
                     }
@@ -103,6 +108,8 @@ class HiringRequestExportController extends Controller
             'paychex_profile_img',
             'paychex_direct_deposit_img',
             'signed_contract_img',
+            'created_at',
+            'updated_at',
         ];
 
         $callback = function () use ($columns) {
@@ -132,6 +139,8 @@ class HiringRequestExportController extends Controller
                             $row->paychex_profile_img,
                             $row->paychex_direct_deposit_img,
                             $row->signed_contract_img,
+                            optional($row->created_at)->format('Y-m-d H:i:s'),
+                            optional($row->updated_at)->format('Y-m-d H:i:s')
                         ];
                         fputcsv($out, $data);
                     }
