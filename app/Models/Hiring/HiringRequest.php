@@ -32,7 +32,9 @@ class HiringRequest extends Model
         'desired_start_date' => 'date',
         'date_of_request' => 'date',
         'supervisors_accept' => 'boolean',
-        'cognito_id' => 'integer'
+        'cognito_id' => 'integer',
+        'created_at'         => 'datetime',
+        'updated_at'         => 'datetime',
     ];
 
     /**
