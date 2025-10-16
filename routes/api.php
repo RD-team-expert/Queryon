@@ -97,7 +97,7 @@ Route::get('/deposit-delivery-dsqr-weekly/{store}/{startdate}/{enddate}', [DSQR_
 
 Route::post('/pizza-schedule', [PizzaScheduleController::class, 'store']);
 
-Route::get('/pizza-schedule/{date}', [PizzaScheduleController::class, 'exportCsv']);
+Route::get('/pizza-schedule/{date?}', [PizzaScheduleController::class, 'exportCsv']);
 
 Route::get('/pizza-schedule-wh/{date}', [PizzaScheduleWHController::class, 'exportCsv']);
 

@@ -548,50 +548,89 @@ private function insertChildRecords($model, array $data, array $empInfoMap): voi
         return $value;
     }
 
-    /**
-     * Export CSV for a given date
-     */
-    public function exportCsv(Request $request, $date)
-    {
-        try {
-            Log::info("PizzaSchedule CSV Export - Date: {$date}");
+    public function exportCsv(Request $request, $date = null)
+{
+    try {
+        Log::info("PizzaSchedule CSV Export - Date: " . ($date ?? 'ALL'));
 
-            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
-                return response()->json(['message' => 'Invalid date format. Use YYYY-MM-DD'], 422);
-            }
+        // Validate format only if date is provided
+        if (!empty($date) && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+            return response()->json(['message' => 'Invalid date format. Use YYYY-MM-DD'], 422);
+        }
 
-            $empInfoData = EmpInfo::with(['attendanceSchedules', 'weeklyScheduleSummaries'])
-                ->where('schedule_date', $date)
-                ->get();
+        // Retrieve data: if date is provided -> filter; otherwise get all
+        $empInfoQuery = EmpInfo::with(['attendanceSchedules', 'weeklyScheduleSummaries']);
 
-            if ($empInfoData->isEmpty()) {
-                return response()->json(['message' => 'No data found for the specified date'], 404);
-            }
+        if (!empty($date)) {
+            $empInfoQuery->where('schedule_date', $date);
+        }
 
-            $fieldMapping = $this->getFieldMapping();
-            $csvData = [];
+        $empInfoData = $empInfoQuery->get();
 
-            // Headers
-            $headers = ['ScheduleDate', 'Store', 'Shift_Count'];
-            foreach ($fieldMapping as $jsonField => $dbColumn) {
-                $headers[] = $jsonField;
-            }
-            $csvData[] = $headers;
+        if ($empInfoData->isEmpty()) {
+            return response()->json(['message' => 'No data found' . ($date ? " for {$date}" : '')], 404);
+        }
 
-            // Process each EmpInfo record
-            foreach ($empInfoData as $empInfo) {
-                $attendanceRecords = $empInfo->attendanceSchedules->sortBy('shift_count');
-                $weeklyRecords = $empInfo->weeklyScheduleSummaries->sortBy('shift_count');
+        $fieldMapping = $this->getFieldMapping();
+        $csvData = [];
 
-                if ($attendanceRecords->isEmpty() && $weeklyRecords->isEmpty()) {
+        // Headers
+        $headers = ['ScheduleDate', 'Store', 'Shift_Count'];
+        foreach ($fieldMapping as $jsonField => $dbColumn) {
+            $headers[] = $jsonField;
+        }
+        $csvData[] = $headers;
+
+        // Process each EmpInfo record
+        foreach ($empInfoData as $empInfo) {
+            $attendanceRecords = $empInfo->attendanceSchedules->sortBy('shift_count');
+            $weeklyRecords = $empInfo->weeklyScheduleSummaries->sortBy('shift_count');
+
+            $scheduleDate = $empInfo->schedule_date ?? ($date ?? 'N/A');
+
+            if ($attendanceRecords->isEmpty() && $weeklyRecords->isEmpty()) {
+                $row = [
+                    'ScheduleDate' => $scheduleDate,
+                    'Store' => $empInfo->store,
+                    'Shift_Count' => 1
+                ];
+
+                foreach ($fieldMapping as $jsonField => $dbColumn) {
+                    $value = $empInfo->getAttribute($dbColumn);
+                    $row[$jsonField] = $this->formatCsvValue($value, $dbColumn);
+                }
+
+                $orderedRow = [];
+                foreach ($headers as $header) {
+                    $orderedRow[] = $row[$header] ?? '';
+                }
+                $csvData[] = $orderedRow;
+            } else {
+                $maxShifts = max($attendanceRecords->count(), $weeklyRecords->count());
+
+                for ($shiftIndex = 0; $shiftIndex < max(1, $maxShifts); $shiftIndex++) {
+                    $attendance = $attendanceRecords->get($shiftIndex);
+                    $weekly = $weeklyRecords->get($shiftIndex);
+
+                    $shiftCount = $attendance ? $attendance->shift_count : ($weekly ? $weekly->shift_count : $shiftIndex + 1);
+
                     $row = [
-                        'ScheduleDate' => $date,
+                        'ScheduleDate' => $scheduleDate,
                         'Store' => $empInfo->store,
-                        'Shift_Count' => 1
+                        'Shift_Count' => $shiftCount
                     ];
 
                     foreach ($fieldMapping as $jsonField => $dbColumn) {
-                        $value = $empInfo->getAttribute($dbColumn);
+                        $value = null;
+
+                        if ($empInfo->getAttribute($dbColumn) !== null) {
+                            $value = $empInfo->getAttribute($dbColumn);
+                        } elseif ($attendance && $attendance->getAttribute($dbColumn) !== null) {
+                            $value = $attendance->getAttribute($dbColumn);
+                        } elseif ($weekly && $weekly->getAttribute($dbColumn) !== null) {
+                            $value = $weekly->getAttribute($dbColumn);
+                        }
+
                         $row[$jsonField] = $this->formatCsvValue($value, $dbColumn);
                     }
 
@@ -600,66 +639,145 @@ private function insertChildRecords($model, array $data, array $empInfoMap): voi
                         $orderedRow[] = $row[$header] ?? '';
                     }
                     $csvData[] = $orderedRow;
-                } else {
-                    $maxShifts = max($attendanceRecords->count(), $weeklyRecords->count());
-
-                    for ($shiftIndex = 0; $shiftIndex < max(1, $maxShifts); $shiftIndex++) {
-                        $attendance = $attendanceRecords->get($shiftIndex);
-                        $weekly = $weeklyRecords->get($shiftIndex);
-
-                        $shiftCount = $attendance ? $attendance->shift_count : ($weekly ? $weekly->shift_count : $shiftIndex + 1);
-
-                        $row = [
-                            'ScheduleDate' => $date,
-                            'Store' => $empInfo->store,
-                            'Shift_Count' => $shiftCount
-                        ];
-
-                        foreach ($fieldMapping as $jsonField => $dbColumn) {
-                            $value = null;
-
-                            if ($empInfo->getAttribute($dbColumn) !== null) {
-                                $value = $empInfo->getAttribute($dbColumn);
-                            } elseif ($attendance && $attendance->getAttribute($dbColumn) !== null) {
-                                $value = $attendance->getAttribute($dbColumn);
-                            } elseif ($weekly && $weekly->getAttribute($dbColumn) !== null) {
-                                $value = $weekly->getAttribute($dbColumn);
-                            }
-
-                            $row[$jsonField] = $this->formatCsvValue($value, $dbColumn);
-                        }
-
-                        $orderedRow = [];
-                        foreach ($headers as $header) {
-                            $orderedRow[] = $row[$header] ?? '';
-                        }
-                        $csvData[] = $orderedRow;
-                    }
                 }
             }
-
-            $csvContent = $this->arrayToCsv($csvData);
-            $filename = "pizza_schedule_all_stores_{$date}.csv";
-
-            Log::info("CSV Export - Successfully exported " . (count($csvData) - 1) . " records");
-
-            return response($csvContent)
-                ->header('Content-Type', 'text/csv')
-                ->header('Content-Disposition', "attachment; filename=\"{$filename}\"")
-                ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
-                ->header('Pragma', 'no-cache')
-                ->header('Expires', '0');
-
-        } catch (\Exception $e) {
-            Log::error('CSV export error: ' . $e->getMessage());
-            Log::error('Stack trace: ' . $e->getTraceAsString());
-
-            return response()->json([
-                'message' => 'Error occurred during CSV export',
-                'error' => $e->getMessage()
-            ], 500);
         }
+
+        $csvContent = $this->arrayToCsv($csvData);
+        $filename = $date ? "pizza_schedule_all_stores_{$date}.csv" : "pizza_schedule_all_stores_all_dates.csv";
+
+        Log::info("CSV Export - Successfully exported " . (count($csvData) - 1) . " records");
+
+        return response($csvContent)
+            ->header('Content-Type', 'text/csv')
+            ->header('Content-Disposition', "attachment; filename=\"{$filename}\"")
+            ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', '0');
+
+    } catch (\Exception $e) {
+        Log::error('CSV export error: ' . $e->getMessage());
+        Log::error('Stack trace: ' . $e->getTraceAsString());
+
+        return response()->json([
+            'message' => 'Error occurred during CSV export',
+            'error' => $e->getMessage()
+        ], 500);
     }
+}
+
+    /**
+     * Export CSV for a given date
+     */
+    // public function exportCsv(Request $request, $date)
+    // {
+    //     try {
+    //         Log::info("PizzaSchedule CSV Export - Date: {$date}");
+
+    //         if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+    //             return response()->json(['message' => 'Invalid date format. Use YYYY-MM-DD'], 422);
+    //         }
+
+    //         $empInfoData = EmpInfo::with(['attendanceSchedules', 'weeklyScheduleSummaries'])
+    //             ->where('schedule_date', $date)
+    //             ->get();
+
+    //         if ($empInfoData->isEmpty()) {
+    //             return response()->json(['message' => 'No data found for the specified date'], 404);
+    //         }
+
+    //         $fieldMapping = $this->getFieldMapping();
+    //         $csvData = [];
+
+    //         // Headers
+    //         $headers = ['ScheduleDate', 'Store', 'Shift_Count'];
+    //         foreach ($fieldMapping as $jsonField => $dbColumn) {
+    //             $headers[] = $jsonField;
+    //         }
+    //         $csvData[] = $headers;
+
+    //         // Process each EmpInfo record
+    //         foreach ($empInfoData as $empInfo) {
+    //             $attendanceRecords = $empInfo->attendanceSchedules->sortBy('shift_count');
+    //             $weeklyRecords = $empInfo->weeklyScheduleSummaries->sortBy('shift_count');
+
+    //             if ($attendanceRecords->isEmpty() && $weeklyRecords->isEmpty()) {
+    //                 $row = [
+    //                     'ScheduleDate' => $date,
+    //                     'Store' => $empInfo->store,
+    //                     'Shift_Count' => 1
+    //                 ];
+
+    //                 foreach ($fieldMapping as $jsonField => $dbColumn) {
+    //                     $value = $empInfo->getAttribute($dbColumn);
+    //                     $row[$jsonField] = $this->formatCsvValue($value, $dbColumn);
+    //                 }
+
+    //                 $orderedRow = [];
+    //                 foreach ($headers as $header) {
+    //                     $orderedRow[] = $row[$header] ?? '';
+    //                 }
+    //                 $csvData[] = $orderedRow;
+    //             } else {
+    //                 $maxShifts = max($attendanceRecords->count(), $weeklyRecords->count());
+
+    //                 for ($shiftIndex = 0; $shiftIndex < max(1, $maxShifts); $shiftIndex++) {
+    //                     $attendance = $attendanceRecords->get($shiftIndex);
+    //                     $weekly = $weeklyRecords->get($shiftIndex);
+
+    //                     $shiftCount = $attendance ? $attendance->shift_count : ($weekly ? $weekly->shift_count : $shiftIndex + 1);
+
+    //                     $row = [
+    //                         'ScheduleDate' => $date,
+    //                         'Store' => $empInfo->store,
+    //                         'Shift_Count' => $shiftCount
+    //                     ];
+
+    //                     foreach ($fieldMapping as $jsonField => $dbColumn) {
+    //                         $value = null;
+
+    //                         if ($empInfo->getAttribute($dbColumn) !== null) {
+    //                             $value = $empInfo->getAttribute($dbColumn);
+    //                         } elseif ($attendance && $attendance->getAttribute($dbColumn) !== null) {
+    //                             $value = $attendance->getAttribute($dbColumn);
+    //                         } elseif ($weekly && $weekly->getAttribute($dbColumn) !== null) {
+    //                             $value = $weekly->getAttribute($dbColumn);
+    //                         }
+
+    //                         $row[$jsonField] = $this->formatCsvValue($value, $dbColumn);
+    //                     }
+
+    //                     $orderedRow = [];
+    //                     foreach ($headers as $header) {
+    //                         $orderedRow[] = $row[$header] ?? '';
+    //                     }
+    //                     $csvData[] = $orderedRow;
+    //                 }
+    //             }
+    //         }
+
+    //         $csvContent = $this->arrayToCsv($csvData);
+    //         $filename = "pizza_schedule_all_stores_{$date}.csv";
+
+    //         Log::info("CSV Export - Successfully exported " . (count($csvData) - 1) . " records");
+
+    //         return response($csvContent)
+    //             ->header('Content-Type', 'text/csv')
+    //             ->header('Content-Disposition', "attachment; filename=\"{$filename}\"")
+    //             ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
+    //             ->header('Pragma', 'no-cache')
+    //             ->header('Expires', '0');
+
+    //     } catch (\Exception $e) {
+    //         Log::error('CSV export error: ' . $e->getMessage());
+    //         Log::error('Stack trace: ' . $e->getTraceAsString());
+
+    //         return response()->json([
+    //             'message' => 'Error occurred during CSV export',
+    //             'error' => $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
 
     /**
      * Format values for CSV export
