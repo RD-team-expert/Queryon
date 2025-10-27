@@ -16,6 +16,8 @@ use App\Http\Controllers\HealthPlan\HealthPlanController;
 use App\Http\Controllers\Hiring\HiringRequestsController;
 use App\Http\Controllers\Hiring\HiringRequestExportController;
 
+use App\Http\Controllers\Hiring\HiringSeparationController;
+
 use App\Http\Controllers\PizzaPayController;
 /**************************  NVT  **********************/
 //********** Employees Data Form **************//
@@ -77,6 +79,10 @@ Route::middleware('check.secret')->group(function () {
     Route::get( 'hiring/export/requests-csv', [HiringRequestExportController::class, 'exportRequests']);
     Route::get('hiring/export/hires-csv', [HiringRequestExportController::class, 'exportHires']);
     Route::get('/pizza-pay/export', [PizzaPayController::class, 'exportCsv']);
+
+    Route::get('hiring/separations/export', [HiringSeparationController::class, 'exportCsv']);
+
+
 });
 
 // Json
@@ -114,3 +120,8 @@ Route::post('hiring/applications-delete', [HiringRequestsController::class, 'del
 
 Route::post('/pizza-pay', [PizzaPayController::class, 'store']);
 
+Route::prefix('hiring/separations')->group(function () {
+    Route::post('/', [HiringSeparationController::class, 'create']);
+    Route::post('/update', [HiringSeparationController::class, 'update']);
+    Route::post('/delete', [HiringSeparationController::class, 'delete']);
+});
