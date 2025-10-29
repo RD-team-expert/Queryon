@@ -19,6 +19,7 @@ use App\Http\Controllers\Hiring\HiringRequestExportController;
 use App\Http\Controllers\Hiring\HiringSeparationController;
 
 use App\Http\Controllers\PizzaPayController;
+use App\Http\Controllers\Pizza\PizzaCAPController;
 /**************************  NVT  **********************/
 //********** Employees Data Form **************//
 //create
@@ -125,3 +126,7 @@ Route::prefix('hiring/separations')->group(function () {
     Route::post('/update', [HiringSeparationController::class, 'update']);
     Route::post('/delete', [HiringSeparationController::class, 'delete']);
 });
+
+Route::post('/pizza/cap/create', [PizzaCAPController::class, 'create'])->name('pizza.cap.create');
+Route::post('/pizza/cap/update', [PizzaCAPController::class, 'update'])->name('pizza.cap.update');
+Route::post('/pizza/cap/delete', [PizzaCAPController::class, 'delete'])->name('pizza.cap.delete');
