@@ -83,6 +83,8 @@ Route::middleware('check.secret')->group(function () {
 
     Route::get('hiring/separations/export', [HiringSeparationController::class, 'exportCsv']);
 
+    Route::get('/pizza-cap-export-action-plans', [PizzaCAPController::class, 'exportActionPlans'])->name('pizza.cap.export.plans');
+    Route::get('/pizza-cap-export-actions', [PizzaCAPController::class, 'exportActions'])->name('pizza.cap.export.actions');
 
 });
 
@@ -130,3 +132,4 @@ Route::prefix('hiring/separations')->group(function () {
 Route::post('/pizza/cap/create', [PizzaCAPController::class, 'create'])->name('pizza.cap.create');
 Route::post('/pizza/cap/update', [PizzaCAPController::class, 'update'])->name('pizza.cap.update');
 Route::post('/pizza/cap/delete', [PizzaCAPController::class, 'delete'])->name('pizza.cap.delete');
+

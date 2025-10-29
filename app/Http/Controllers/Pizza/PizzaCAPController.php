@@ -323,4 +323,154 @@ class PizzaCAPController extends Controller
             'actions' => $actions,
         ];
     }
+
+
+    /**
+ * Export pizza coaching action plans to CSV
+ */
+public function exportActionPlans()
+{
+    try {
+        $actionPlans = PizzaCoachingActionPlan::orderBy('date', 'desc')->get();
+
+        $fileName = 'pizza_coaching_action_plans_' . now()->format('Y_m_d_H_i_s') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+            'Content-Encoding' => 'none',
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0',
+        ];
+
+        $callback = function() use ($actionPlans) {
+            $file = fopen('php://output', 'w');
+
+            // Add UTF-8 BOM for Excel compatibility
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+
+            // CSV Headers
+            fputcsv($file, [
+                'Cognito ID',
+                'Manager First Name',
+                'Manager Last Name',
+                'Store',
+                'Employee First Name',
+                'Employee Last Name',
+                'Description of Incident',
+                'Coaching Plan',
+                'Date',
+                'CAP Type',
+                'Re-evaluation After (weeks)',
+                'Director First Name',
+                'Director Last Name',
+                'Director Is Accepted',
+                'Director Rejection Reason',
+                'Created At',
+                'Updated At'
+            ]);
+
+            // CSV Data
+            foreach ($actionPlans as $plan) {
+                fputcsv($file, [
+                    $plan->cognito_id,
+                    $plan->manager_first_name,
+                    $plan->manager_last_name,
+                    $plan->store,
+                    $plan->emp_first_name,
+                    $plan->emp_last_name,
+                    // Text fields with potential newlines - fputcsv handles them automatically
+                    $plan->description_of_the_incident,
+                    $plan->coaching_plan,
+                    $plan->date,
+                    $plan->cap_type,
+                    $plan->re_evaluation_after,
+                    $plan->director_first_name,
+                    $plan->director_last_name,
+                    $plan->director_is_accepted,
+                    $plan->director_rejection_reason,
+                    $plan->created_at,
+                    $plan->updated_at
+                ], ',', '"', '\\');  // Explicitly set delimiter, enclosure, and escape character
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+
+    } catch (Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to export action plans',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+
+/**
+ * Export pizza coaching actions to CSV
+ */
+public function exportActions()
+{
+    try {
+        $actions = PizzaCoachingAction::with('actionPlan')
+            ->orderBy('cognito_id')
+            ->orderBy('id')
+            ->get();
+
+        $fileName = 'pizza_coaching_actions_' . now()->format('Y_m_d_H_i_s') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+            'Content-Encoding' => 'none',
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0',
+        ];
+
+        $callback = function() use ($actions) {
+            $file = fopen('php://output', 'w');
+
+            // Add UTF-8 BOM for Excel compatibility
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+
+            // CSV Headers
+            fputcsv($file, [
+                'Action ID',
+                'Cognito ID',
+                'Action Name',
+                'Created At',
+                'Updated At'
+            ]);
+
+            // CSV Data
+            foreach ($actions as $action) {
+                $plan = $action->actionPlan;
+
+                fputcsv($file, [
+                    $action->id,
+                    $action->cognito_id,
+                    $action->action_name,
+                    $action->created_at,
+                    $action->updated_at
+                ], ',', '"', '\\');  // Explicitly set delimiter, enclosure, and escape character
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+
+    } catch (Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to export actions',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+
 }
