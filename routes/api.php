@@ -57,6 +57,8 @@ Route::post('/pizza/littlecaesars/update', [LittleCaesarsHrDepartmentController:
 Route::post('/pizza/littlecaesars/delete', [LittleCaesarsHrDepartmentController::class, 'destroy']);
 
 
+
+
 /************* deposit delivery ************/
 
 Route::post('pizza/deposit-delivery-data', [DepositDeliveryController::class, 'create']);

@@ -1,0 +1,18 @@
+<?php
+
+namespace Pizza\HR_Department\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class FeedbacksComplaint extends Model
+{
+    protected $table = 'feedbacks_complaints';
+    protected $fillable = [
+        'form_request_id', 'the_issue_or_concern', 'suggestions'
+    ];
+
+    public function formRequest()
+    {
+        return $this->belongsTo(FormRequest::class);
+    }
+}
