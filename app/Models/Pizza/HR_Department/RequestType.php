@@ -1,6 +1,6 @@
 <?php
 
-namespace Pizza\HR_Department\Models;
+namespace App\Models\Pizza\HR_Department;
 
 use Illuminate\Database\Eloquent\Model;
 

@@ -1,13 +1,16 @@
 <?php
 
-namespace Pizza\HR_Department\Models;
+namespace App\Models\Pizza\HR_Department;
 
 use Illuminate\Database\Eloquent\Model;
 
 class FormRequest extends Model
 {
     protected $table = 'form_requests';
-    protected $fillable = [
+    protected $primaryKey = 'id';
+    public $incrementing = false;
+    protected $keyType = 'int';
+    protected $fillable = ['id',
         'language_id', 'store_id', 'first_name', 'last_name',
         'phone', 'email', 'request_date', 'request_type_id',
         'manager_first_name', 'manager_last_name', 'manager_title',

@@ -20,6 +20,9 @@ use App\Http\Controllers\Hiring\HiringSeparationController;
 
 use App\Http\Controllers\PizzaPayController;
 use App\Http\Controllers\Pizza\PizzaCAPController;
+
+
+
 /**************************  NVT  **********************/
 //********** Employees Data Form **************//
 //create
@@ -135,3 +138,18 @@ Route::post('/pizza/cap/create', [PizzaCAPController::class, 'create'])->name('p
 Route::post('/pizza/cap/update', [PizzaCAPController::class, 'update'])->name('pizza.cap.update');
 Route::post('/pizza/cap/delete', [PizzaCAPController::class, 'delete'])->name('pizza.cap.delete');
 
+
+/******************** HR Department ****************/
+
+// Store Management Routes
+use App\Http\Controllers\Pizza\HR_Department\StoreController;
+
+Route::post('/stores/create', [StoreController::class, 'create']);
+Route::post('/stores/update', [StoreController::class, 'update']);
+Route::post('/stores/delete', [StoreController::class, 'delete']);
+
+use App\Http\Controllers\Pizza\HR_Department\HrDepartmentController;
+
+Route::post('/hr-department/create', [HrDepartmentController::class, 'create']);
+Route::post('/hr-department/update', [HrDepartmentController::class, 'update']);
+Route::post('/hr-department/delete', [HrDepartmentController::class, 'delete']);
