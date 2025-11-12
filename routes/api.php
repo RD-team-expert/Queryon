@@ -114,6 +114,8 @@ Route::post('/pizza-schedule', [PizzaScheduleController::class, 'store']);
 Route::get('/pizza-schedule/{date?}', [PizzaScheduleController::class, 'exportCsv']);
 
 Route::get('/pizza-schedule-wh/{date}', [PizzaScheduleWHController::class, 'exportCsv']);
+Route::get('/pizza-schedule-wh/range/{start_date}/{end_date}', [PizzaScheduleWHController::class, 'exportCsvRange']);
+
 
 Route::post('health-plan/applications', [HealthPlanController::class, 'create']);
 Route::post('health-plan/applications-update', [HealthPlanController::class, 'update']);

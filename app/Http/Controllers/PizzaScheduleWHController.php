@@ -93,6 +93,9 @@ class PizzaScheduleWHController extends Controller
         }
     }
 
+
+
+
     /**
      * Get working hours from 11 AM to 2 AM
      */
@@ -204,4 +207,141 @@ class PizzaScheduleWHController extends Controller
         }
         return $output;
     }
+
+
+    /**********************************/
+
+    public function exportCsvRange(Request $request, $start_date, $end_date)
+    {
+        try {
+            Log::info("PizzaSchedule WH Range Export - Start: {$start_date}, End: {$end_date}");
+
+            // Validate date formats
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $start_date) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $end_date)) {
+                return response()->json(['message' => 'Invalid date format. Use YYYY-MM-DD'], 422);
+            }
+
+            // Validate that end_date is after start_date
+            if (Carbon::parse($end_date)->lt(Carbon::parse($start_date))) {
+                return response()->json(['message' => 'End date must be after start date'], 422);
+            }
+
+            // Get all Tuesday dates between start_date and end_date
+            $tuesdayDates = $this->getTuesdaysBetweenDates($start_date, $end_date);
+
+            if (empty($tuesdayDates)) {
+                return response()->json(['message' => 'No Tuesdays found in the specified date range'], 404);
+            }
+
+            Log::info("Found " . count($tuesdayDates) . " Tuesdays in range");
+
+            // Define working hours
+            $workingHours = $this->getWorkingHours();
+
+            // Initialize CSV data with headers
+            $csvData = [];
+            $headers = ['store', 'schedule_date', 'hour', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun', 'mon'];
+            $csvData[] = $headers;
+
+            // Loop through each Tuesday date
+            foreach ($tuesdayDates as $date) {
+                Log::info("Processing date: {$date}");
+
+                // Get all unique stores for this date
+                $stores = AttendanceSchedule::where('schedule_date', $date)
+                    ->whereNotNull('emp_id')
+                    ->distinct()
+                    ->pluck('store')
+                    ->toArray();
+
+                if (empty($stores)) {
+                    Log::warning("No attendance data found for date: {$date}");
+                    continue;
+                }
+
+                // Loop through each store
+                foreach ($stores as $store) {
+                    // Get all attendance records for this store and date
+                    $attendanceRecords = AttendanceSchedule::where('store', $store)
+                        ->where('schedule_date', $date)
+                        ->whereNotNull('emp_id')
+                        ->get();
+
+                    // Calculate employee counts for each hour
+                    foreach ($workingHours as $hour) {
+                        $row = [
+                            'store' => $store,
+                            'schedule_date' => $date,
+                            'hour' => $hour,
+                            'tue' => $this->countEmployeesAtHour($attendanceRecords, 'tue', $hour),
+                            'wed' => $this->countEmployeesAtHour($attendanceRecords, 'wed', $hour),
+                            'thu' => $this->countEmployeesAtHour($attendanceRecords, 'thu', $hour),
+                            'fri' => $this->countEmployeesAtHour($attendanceRecords, 'fri', $hour),
+                            'sat' => $this->countEmployeesAtHour($attendanceRecords, 'sat', $hour),
+                            'sun' => $this->countEmployeesAtHour($attendanceRecords, 'sun', $hour),
+                            'mon' => $this->countEmployeesAtHour($attendanceRecords, 'mon', $hour)
+                        ];
+                        $csvData[] = array_values($row);
+                    }
+                }
+            }
+
+            // Check if we have any data beyond headers
+            if (count($csvData) <= 1) {
+                return response()->json(['message' => 'No attendance data found for any Tuesday in the specified date range'], 404);
+            }
+
+            // Generate CSV content
+            $csvContent = $this->arrayToCsv($csvData);
+
+            // Create filename with date range
+            $filename = "working_hours_tuesdays_{$start_date}_to_{$end_date}.csv";
+
+            Log::info("PizzaSchedule WH Range Export - Successfully exported data for " . (count($tuesdayDates)) . " Tuesdays");
+
+            // Return CSV as download
+            return response($csvContent)
+                ->header('Content-Type', 'text/csv; charset=utf-8')
+                ->header('Content-Disposition', "attachment; filename=\"{$filename}\"")
+                ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', '0');
+
+        } catch (\Exception $e) {
+            Log::error('PizzaSchedule WH range export error: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
+
+            return response()->json([
+                'message' => 'Error occurred during working hours CSV range export',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+/**
+ * Get all Tuesday dates between start_date and end_date
+ */
+private function getTuesdaysBetweenDates(string $start_date, string $end_date): array
+{
+    $tuesdays = [];
+    $startDate = Carbon::createFromFormat('Y-m-d', $start_date);
+    $endDate = Carbon::createFromFormat('Y-m-d', $end_date);
+
+    // Clone to avoid mutating the original date
+    $currentDate = $startDate->copy();
+
+    // If start date is not Tuesday, move to next Tuesday
+    if (!$currentDate->isTuesday()) {
+        $currentDate->next(Carbon::TUESDAY);
+    }
+
+    // Loop through and collect all Tuesdays
+    while ($currentDate->lte($endDate)) {
+        $tuesdays[] = $currentDate->format('Y-m-d');
+        $currentDate->addWeek(); // Move to next Tuesday
+    }
+
+    return $tuesdays;
+}
+
 }
