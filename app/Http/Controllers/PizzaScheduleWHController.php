@@ -211,43 +211,48 @@ class PizzaScheduleWHController extends Controller
 
     /**********************************/
 
-    public function exportCsvRange(Request $request, $start_date, $end_date)
-    {
-        try {
-            Log::info("PizzaSchedule WH Range Export - Start: {$start_date}, End: {$end_date}");
+public function exportCsvRange(Request $request, $start_date, $end_date)
+{
+    try {
+        // Essential for large exports
+        set_time_limit(600); // 10 minutes
+        ini_set('memory_limit', '1G');
 
-            // Validate date formats
-            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $start_date) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $end_date)) {
-                return response()->json(['message' => 'Invalid date format. Use YYYY-MM-DD'], 422);
-            }
+        Log::info("PizzaSchedule WH Range Export - Start: {$start_date}, End: {$end_date}");
 
-            // Validate that end_date is after start_date
-            if (Carbon::parse($end_date)->lt(Carbon::parse($start_date))) {
-                return response()->json(['message' => 'End date must be after start date'], 422);
-            }
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $start_date) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $end_date)) {
+            return response()->json(['message' => 'Invalid date format. Use YYYY-MM-DD'], 422);
+        }
 
-            // Get all Tuesday dates between start_date and end_date
-            $tuesdayDates = $this->getTuesdaysBetweenDates($start_date, $end_date);
+        if (Carbon::parse($end_date)->lt(Carbon::parse($start_date))) {
+            return response()->json(['message' => 'End date must be after start date'], 422);
+        }
 
-            if (empty($tuesdayDates)) {
-                return response()->json(['message' => 'No Tuesdays found in the specified date range'], 404);
-            }
+        $tuesdayDates = $this->getTuesdaysBetweenDates($start_date, $end_date);
 
-            Log::info("Found " . count($tuesdayDates) . " Tuesdays in range");
+        if (empty($tuesdayDates)) {
+            return response()->json(['message' => 'No Tuesdays found in the specified date range'], 404);
+        }
 
-            // Define working hours
-            $workingHours = $this->getWorkingHours();
+        $workingHours = $this->getWorkingHours();
+        $filename = "working_hours_tuesdays_{$start_date}_to_{$end_date}.csv";
 
-            // Initialize CSV data with headers
-            $csvData = [];
-            $headers = ['store', 'schedule_date', 'hour', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun', 'mon'];
-            $csvData[] = $headers;
+        Log::info("Processing " . count($tuesdayDates) . " Tuesdays");
 
-            // Loop through each Tuesday date
+        return response()->stream(function() use ($tuesdayDates, $workingHours) {
+            $output = fopen('php://output', 'w');
+
+            // Write headers
+            fputcsv($output, ['store', 'schedule_date', 'hour', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun', 'mon']);
+
+            $processedDates = 0;
+
+            // Process each Tuesday
             foreach ($tuesdayDates as $date) {
-                Log::info("Processing date: {$date}");
+                $processedDates++;
+                Log::info("Processing date {$processedDates}/" . count($tuesdayDates) . ": {$date}");
 
-                // Get all unique stores for this date
+                // Get all stores for this date
                 $stores = AttendanceSchedule::where('schedule_date', $date)
                     ->whereNotNull('emp_id')
                     ->distinct()
@@ -255,68 +260,69 @@ class PizzaScheduleWHController extends Controller
                     ->toArray();
 
                 if (empty($stores)) {
-                    Log::warning("No attendance data found for date: {$date}");
+                    Log::warning("No attendance data for date: {$date}");
                     continue;
                 }
 
-                // Loop through each store
+                Log::info("Found " . count($stores) . " stores for {$date}");
+
+                // Process each store
                 foreach ($stores as $store) {
-                    // Get all attendance records for this store and date
+                    // Fetch attendance records ONCE per store to avoid N+1 queries
                     $attendanceRecords = AttendanceSchedule::where('store', $store)
                         ->where('schedule_date', $date)
                         ->whereNotNull('emp_id')
                         ->get();
 
-                    // Calculate employee counts for each hour
+                    // Write all hours for this store
                     foreach ($workingHours as $hour) {
-                        $row = [
-                            'store' => $store,
-                            'schedule_date' => $date,
-                            'hour' => $hour,
-                            'tue' => $this->countEmployeesAtHour($attendanceRecords, 'tue', $hour),
-                            'wed' => $this->countEmployeesAtHour($attendanceRecords, 'wed', $hour),
-                            'thu' => $this->countEmployeesAtHour($attendanceRecords, 'thu', $hour),
-                            'fri' => $this->countEmployeesAtHour($attendanceRecords, 'fri', $hour),
-                            'sat' => $this->countEmployeesAtHour($attendanceRecords, 'sat', $hour),
-                            'sun' => $this->countEmployeesAtHour($attendanceRecords, 'sun', $hour),
-                            'mon' => $this->countEmployeesAtHour($attendanceRecords, 'mon', $hour)
-                        ];
-                        $csvData[] = array_values($row);
+                        fputcsv($output, [
+                            $store,
+                            $date,
+                            $hour,
+                            $this->countEmployeesAtHour($attendanceRecords, 'tue', $hour),
+                            $this->countEmployeesAtHour($attendanceRecords, 'wed', $hour),
+                            $this->countEmployeesAtHour($attendanceRecords, 'thu', $hour),
+                            $this->countEmployeesAtHour($attendanceRecords, 'fri', $hour),
+                            $this->countEmployeesAtHour($attendanceRecords, 'sat', $hour),
+                            $this->countEmployeesAtHour($attendanceRecords, 'sun', $hour),
+                            $this->countEmployeesAtHour($attendanceRecords, 'mon', $hour)
+                        ]);
                     }
+
+                    // Clear memory after each store
+                    unset($attendanceRecords);
+                }
+
+                // Flush output buffer every 5 dates to show progress
+                if ($processedDates % 5 == 0) {
+                    flush();
+                    ob_flush();
                 }
             }
 
-            // Check if we have any data beyond headers
-            if (count($csvData) <= 1) {
-                return response()->json(['message' => 'No attendance data found for any Tuesday in the specified date range'], 404);
-            }
+            fclose($output);
+            Log::info("Export completed - processed {$processedDates} dates");
 
-            // Generate CSV content
-            $csvContent = $this->arrayToCsv($csvData);
+        }, 200, [
+            'Content-Type' => 'text/csv; charset=utf-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+            'Pragma' => 'no-cache',
+            'Expires' => '0'
+        ]);
 
-            // Create filename with date range
-            $filename = "working_hours_tuesdays_{$start_date}_to_{$end_date}.csv";
+    } catch (\Exception $e) {
+        Log::error('PizzaSchedule WH range export error: ' . $e->getMessage());
+        Log::error('Stack trace: ' . $e->getTraceAsString());
 
-            Log::info("PizzaSchedule WH Range Export - Successfully exported data for " . (count($tuesdayDates)) . " Tuesdays");
-
-            // Return CSV as download
-            return response($csvContent)
-                ->header('Content-Type', 'text/csv; charset=utf-8')
-                ->header('Content-Disposition', "attachment; filename=\"{$filename}\"")
-                ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
-                ->header('Pragma', 'no-cache')
-                ->header('Expires', '0');
-
-        } catch (\Exception $e) {
-            Log::error('PizzaSchedule WH range export error: ' . $e->getMessage());
-            Log::error('Stack trace: ' . $e->getTraceAsString());
-
-            return response()->json([
-                'message' => 'Error occurred during working hours CSV range export',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+        return response()->json([
+            'message' => 'Error occurred during working hours CSV range export',
+            'error' => $e->getMessage()
+        ], 500);
     }
+}
+
 
 /**
  * Get all Tuesday dates between start_date and end_date
