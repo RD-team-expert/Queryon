@@ -211,14 +211,19 @@ class PizzaScheduleWHController extends Controller
 
     /**********************************/
 
-   public function exportCsvRange(Request $request, $start_date, $end_date)
+public function exportCsvRange(Request $request, $start_date, $end_date)
 {
     try {
-        // No need for set_time_limit or ini_set with streaming!
+        // CRITICAL: Disable all output buffering
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+
+        set_time_limit(300); // 5 minutes
+        ini_set('max_execution_time', 300);
 
         Log::info("PizzaSchedule WH Range Export - Start: {$start_date}, End: {$end_date}");
 
-        // Validate date formats
         if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $start_date) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $end_date)) {
             return response()->json(['message' => 'Invalid date format. Use YYYY-MM-DD'], 422);
         }
@@ -236,29 +241,35 @@ class PizzaScheduleWHController extends Controller
         $workingHours = $this->getWorkingHours();
         $filename = "working_hours_tuesdays_{$start_date}_to_{$end_date}.csv";
 
-        // ===== THIS IS THE STREAMING PART =====
         return response()->stream(function() use ($tuesdayDates, $workingHours) {
+            // CRITICAL: Disable output buffering inside the stream
+            if (ob_get_level()) ob_end_clean();
+
             $output = fopen('php://output', 'w');
 
-            // Write CSV headers
+            // Write headers
             fputcsv($output, ['store', 'schedule_date', 'hour', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun', 'mon']);
 
-            // Process each Tuesday
-            foreach ($tuesdayDates as $date) {
-                Log::info("Processing date: {$date}");
+            // CRITICAL: Flush immediately after headers
+            if (ob_get_level()) ob_flush();
+            flush();
 
-                // ONE query per date - get all records at once
+            $processedDates = 0;
+
+            foreach ($tuesdayDates as $date) {
+                $processedDates++;
+                Log::info("Processing {$processedDates}/" . count($tuesdayDates) . ": {$date}");
+
                 $allRecords = AttendanceSchedule::where('schedule_date', $date)
                     ->whereNotNull('emp_id')
                     ->get()
-                    ->groupBy('store'); // Group by store in memory
+                    ->groupBy('store');
 
                 if ($allRecords->isEmpty()) {
-                    Log::warning("No attendance data for: {$date}");
+                    Log::warning("No data for: {$date}");
                     continue;
                 }
 
-                // Loop through each store
                 foreach ($allRecords as $store => $attendanceRecords) {
                     foreach ($workingHours as $hour) {
                         fputcsv($output, [
@@ -275,30 +286,30 @@ class PizzaScheduleWHController extends Controller
                         ]);
                     }
                 }
+
+                // CRITICAL: Flush after each date
+                if (ob_get_level()) ob_flush();
+                flush();
             }
 
             fclose($output);
-            Log::info("Export completed successfully");
+            Log::info("Export completed - {$processedDates} dates processed");
 
         }, 200, [
             'Content-Type' => 'text/csv; charset=utf-8',
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",
             'Cache-Control' => 'no-cache, no-store, must-revalidate',
+            'X-Accel-Buffering' => 'no', // Disable nginx buffering
             'Pragma' => 'no-cache',
-            'Expires' => '0',
-            'X-Accel-Buffering' => 'no' // Disable nginx buffering
+            'Expires' => '0'
         ]);
 
     } catch (\Exception $e) {
-        Log::error('PizzaSchedule WH range export error: ' . $e->getMessage());
-        Log::error('Stack trace: ' . $e->getTraceAsString());
-
-        return response()->json([
-            'message' => 'Error occurred during working hours CSV range export',
-            'error' => $e->getMessage()
-        ], 500);
+        Log::error('Export error: ' . $e->getMessage());
+        return response()->json(['message' => 'Export failed', 'error' => $e->getMessage()], 500);
     }
 }
+
 
 
 /**
