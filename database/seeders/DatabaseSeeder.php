@@ -24,5 +24,9 @@ class DatabaseSeeder extends Seeder
          $this->call([
             HRDepartmentSeeder::class,
         ]);
+
+        $this->call([
+            PizzaInventorySeeder::class,
+        ]);
     }
 }

@@ -21,7 +21,7 @@ use App\Http\Controllers\Hiring\HiringSeparationController;
 use App\Http\Controllers\PizzaPayController;
 use App\Http\Controllers\Pizza\PizzaCAPController;
 
-
+use App\Http\Controllers\PizzaInventory\WebhookController;
 
 /**************************  NVT  **********************/
 //********** Employees Data Form **************//
@@ -155,3 +155,9 @@ use App\Http\Controllers\Pizza\HR_Department\HrDepartmentController;
 Route::post('/hr-department/create', [HrDepartmentController::class, 'create']);
 Route::post('/hr-department/update', [HrDepartmentController::class, 'update']);
 Route::post('/hr-department/delete', [HrDepartmentController::class, 'delete']);
+
+
+/**************** Pizza Inventory Webhooks ****************/
+Route::post('/inventory/create', [WebhookController::class, 'create']);
+Route::post('/inventory/update', [WebhookController::class, 'update']);
+Route::post('/inventory/delete', [WebhookController::class, 'delete']);
