@@ -91,6 +91,8 @@ Route::middleware('check.secret')->group(function () {
     Route::get('/pizza-cap-export-action-plans', [PizzaCAPController::class, 'exportActionPlans'])->name('pizza.cap.export.plans');
     Route::get('/pizza-cap-export-actions', [PizzaCAPController::class, 'exportActions'])->name('pizza.cap.export.actions');
 
+    Route::get('/inventory/export', [WebhookController::class, 'exportCsv']);
+
 });
 
 // Json
@@ -161,3 +163,5 @@ Route::post('/hr-department/delete', [HrDepartmentController::class, 'delete']);
 Route::post('/inventory/create', [WebhookController::class, 'create']);
 Route::post('/inventory/update', [WebhookController::class, 'update']);
 Route::post('/inventory/delete', [WebhookController::class, 'delete']);
+
+

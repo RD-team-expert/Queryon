@@ -9,7 +9,7 @@ use App\Models\PizzaInventory\Item;
 use App\Models\PizzaInventory\ItemUnit;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-
+use Illuminate\Support\Facades\Response;
 class WebhookController extends Controller
 {
     public function create(Request $request)
@@ -114,6 +114,110 @@ class WebhookController extends Controller
         }
     }
 
+    public function exportCsv()
+{
+    $submissions = Submission::with(['items.units'])->get();
+
+    // Headers
+    $headers = [
+        'submission_id',
+        'emp_name',
+        'store_manager_name',
+        'store',
+        'email',
+        'phone',
+        'date',
+        'inventory_type',
+        'is_accepted',
+        'rejection_reason',
+        'item',
+        'unit',
+        'value'
+    ];
+
+    // Build CSV rows
+    $rows = [];
+
+    foreach ($submissions as $submission) {
+        if ($submission->items->isEmpty()) {
+            // Submission with no items
+            $rows[] = [
+                $submission->submission_id,
+                $submission->emp_name,
+                $submission->store_manager_name,
+                $submission->store,
+                $submission->email,
+                $submission->phone,
+                $submission->date,
+                $submission->inventory_type,
+                $submission->is_accepted ? 'Approved' : ($submission->is_accepted === false ? 'Rejected' : ''),
+                $submission->rejection_reason,
+                '', // no item
+                '', // no unit
+                ''  // no value
+            ];
+        } else {
+            // Submission with items - one row per item-unit
+            foreach ($submission->items as $item) {
+                foreach ($item->units as $unit) {
+                    $rows[] = [
+                        $submission->submission_id,
+                        $submission->emp_name,
+                        $submission->store_manager_name,
+                        $submission->store,
+                        $submission->email,
+                        $submission->phone,
+                        $submission->date,
+                        $submission->inventory_type,
+                        $submission->is_accepted ? 'Approved' : ($submission->is_accepted === false ? 'Rejected' : ''),
+                        $submission->rejection_reason,
+                        $item->item,
+                        $unit->name,
+                        $unit->value ?? ''
+                    ];
+                }
+
+                // Add row for item without units (if any)
+                if ($item->units->isEmpty()) {
+                    $rows[] = [
+                        $submission->submission_id,
+                        $submission->emp_name,
+                        $submission->store_manager_name,
+                        $submission->store,
+                        $submission->email,
+                        $submission->phone,
+                        $submission->date,
+                        $submission->inventory_type,
+                        $submission->is_accepted ? 'Approved' : ($submission->is_accepted === false ? 'Rejected' : ''),
+                        $submission->rejection_reason,
+                        $item->item,
+                        '',
+                        ''
+                    ];
+                }
+            }
+        }
+    }
+
+    // Generate CSV
+    $csv = fopen('php://temp', 'r+');
+    fputcsv($csv, $headers);
+
+    foreach ($rows as $row) {
+        fputcsv($csv, $row);
+    }
+
+    rewind($csv);
+    $csvContent = stream_get_contents($csv);
+    fclose($csv);
+
+    // Return CSV download
+    return Response::streamDownload(function () use ($csvContent) {
+        echo $csvContent;
+    }, 'pizza_inventory_' . now()->format('Y-m-d_H-i-s') . '.csv', [
+        'Content-Type' => 'text/csv',
+    ]);
+}
     // ========== Helpers ==========
 
     protected function mapSubmission(array $data): array
