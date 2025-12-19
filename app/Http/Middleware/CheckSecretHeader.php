@@ -15,7 +15,7 @@ class CheckSecretHeader
 
 
         // The expected key is read from config (points to .env)
-        $expectedKey = env('X_SECRET_KEY');
+        $expectedKey = config('services.excel_secret');
         // or env('X_SECRET_KEY') if you'd rather go directly
         Log::info('Received API Key:', ['provided' => $providedKey]);
 

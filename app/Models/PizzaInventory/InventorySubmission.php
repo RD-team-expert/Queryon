@@ -5,14 +5,12 @@ namespace App\Models\PizzaInventory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Submission extends Model
+class InventorySubmission extends Model
 {
-    protected $table = 'submissions';
-    protected $primaryKey = 'submission_id';
-    public $incrementing = false;
+    protected $table = 'inventory_submissions';
 
     protected $fillable = [
-        'submission_id',
+        'external_submission_number',
         'emp_name',
         'store_manager_name',
         'store',
@@ -31,6 +29,6 @@ class Submission extends Model
 
     public function items(): HasMany
     {
-        return $this->hasMany(Item::class, 'submission_id', 'submission_id');
+        return $this->hasMany(InventoryItem::class, 'submission_id');
     }
 }
