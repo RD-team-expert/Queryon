@@ -25,8 +25,8 @@ class DatabaseSeeder extends Seeder
             HRDepartmentSeeder::class,
         ]);
 
-        $this->call([
-            PizzaInventorySeeder::class,
-        ]);
+            $this->call([
+        InventoryCatalogSeeder::class,
+    ]);
     }
 }

@@ -5,13 +5,13 @@ namespace App\Models\PizzaInventory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class ItemUnit extends Model
+class InventoryItemUnit extends Model
 {
-    protected $table = 'item_units';
+    protected $table = 'inventory_item_units';
 
     protected $fillable = [
         'item_id',
-        'name',
+        'unit_key',
         'value',
     ];
 
@@ -21,6 +21,6 @@ class ItemUnit extends Model
 
     public function item(): BelongsTo
     {
-        return $this->belongsTo(Item::class, 'item_id');
+        return $this->belongsTo(InventoryItem::class, 'item_id');
     }
 }

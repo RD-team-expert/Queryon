@@ -21,7 +21,7 @@ use App\Http\Controllers\Hiring\HiringSeparationController;
 use App\Http\Controllers\PizzaPayController;
 use App\Http\Controllers\Pizza\PizzaCAPController;
 
-use App\Http\Controllers\PizzaInventory\WebhookController;
+use App\Http\Controllers\PizzaInventory\InventoryWebhookController;
 
 /**************************  NVT  **********************/
 //********** Employees Data Form **************//
@@ -91,7 +91,7 @@ Route::middleware('check.secret')->group(function () {
     Route::get('/pizza-cap-export-action-plans', [PizzaCAPController::class, 'exportActionPlans'])->name('pizza.cap.export.plans');
     Route::get('/pizza-cap-export-actions', [PizzaCAPController::class, 'exportActions'])->name('pizza.cap.export.actions');
 
-    Route::get('/inventory/export', [WebhookController::class, 'exportCsv']);
+Route::get('/inventory/export', [InventoryWebhookController::class, 'exportCsv']);
 
 });
 
@@ -105,7 +105,6 @@ Route::middleware('auth.verify')->group(function () {
     Route::get('/pizza/littlecaesars/data', [LittleCaesarsHrDepartmentController::class, 'getData']);
     Route::get('/deposit-delivery/get-data/{start_date?}/{end_date?}/{franchisee_num?}', [DepositDeliveryController::class, 'getData']);
     Route::get('/deposit-delivery/get-data', [DepositDeliveryController::class, 'getData']);
-
 });
 
 Route::get('/deposit-delivery-dsqr/{store}/{date}', [DSQR_Controller::class, 'daily']);
@@ -160,8 +159,6 @@ Route::post('/hr-department/delete', [HrDepartmentController::class, 'delete']);
 
 
 /**************** Pizza Inventory Webhooks ****************/
-Route::post('/inventory/create', [WebhookController::class, 'create']);
-Route::post('/inventory/update', [WebhookController::class, 'update']);
-Route::post('/inventory/delete', [WebhookController::class, 'delete']);
-
-
+Route::post('/inventory/create', [InventoryWebhookController::class, 'create']);
+Route::post('/inventory/update', [InventoryWebhookController::class, 'update']);
+Route::post('/inventory/delete', [InventoryWebhookController::class, 'delete']);
