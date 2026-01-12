@@ -1,0 +1,69 @@
+{
+    "Form": {
+        "Id": "1318",
+        "InternalName": "APPROVALS",
+        "Name": "APPROVALS"
+    },
+    "Details": {
+        "WhatIsTheThingThatYouNeedApprovalFor": "Closing online",
+        "Why": "because why not",
+        "Name": {
+            "First": "test",
+            "FirstAndLast": "test test",
+            "Last": "test",
+            "Middle": null,
+            "MiddleInitial": null,
+            "Prefix": null,
+            "Suffix": null
+        },
+        "TodaysDate": "2026-01-11",
+        "YourStore": {
+            "Id": "946-2",
+            "Label": "Chatterton - 1"
+        },
+        "NameTheManagerWhoYouConsulted": {
+            "First": "test",
+            "FirstAndLast": "test test",
+            "Last": "test",
+            "Middle": null,
+            "MiddleInitial": null,
+            "Prefix": null,
+            "Suffix": null
+        }
+    },
+    "TheFinalDecision": {
+        "Decision": null,
+        "Notes": null
+    },
+    "Entry": {
+        "AdminLink": "https://www.cognitoforms.com/PNEPIZZA/1318/entries/97",
+        "DateCreated": "2026-01-12T18:06:46.595Z",
+        "DateSubmitted": "2026-01-12T18:06:46.595Z",
+        "DateUpdated": "2026-01-12T18:06:46.595Z",
+        "Number": 97,
+        "Order": null,
+        "Origin": {
+            "City": null,
+            "CountryCode": null,
+            "IpAddress": "149.40.50.202",
+            "IsImported": false,
+            "Region": null,
+            "Timezone": null,
+            "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+        },
+        "Timestamp": "2026-01-12T18:06:46.595Z",
+        "User": {
+            "Email": "george.warren.pne@gmail.com",
+            "Name": "George Warren"
+        },
+        "Version": 1,
+        "Action": "Submit",
+        "Role": "Public",
+        "Status": "Submitted",
+        "PublicLink": "https://www.cognitoforms.com/PNEPIZZA/APPROVALS#OHuP_wlRYDo-bT9jjCA02Qc0GPSennGFdFLf76OonSw$*",
+        "FinalViewLink": "https://www.cognitoforms.com/PNEPIZZA/APPROVALS#AbsYhv2fi5T7TLD8i73GR5CSkngC_HFzrtB2BOf0ICM$*",
+        "Document1": "https://www.cognitoforms.com/d/nzoMYbdGNU6i7P9NHtPSmw?code=od_-Yq0517t4u7FOO-nrS0yczGqVKnG_LcV-cWvg0a8$",
+        "Document2": "https://www.cognitoforms.com/d/nzoMYbdGNU6i7P9NHtPSmw?code=v2M1k8BOFWb9cgJzsguvWeUynKGHjWJFyy4L4M10YBM$"
+    },
+    "Id": "1318-97"
+}
