@@ -22,6 +22,8 @@ use App\Http\Controllers\PizzaPayController;
 use App\Http\Controllers\Pizza\PizzaCAPController;
 
 use App\Http\Controllers\PizzaInventory\InventoryWebhookController;
+use App\Http\Controllers\Pizza\ApprovalController;
+
 
 /**************************  NVT  **********************/
 //********** Employees Data Form **************//
@@ -91,7 +93,10 @@ Route::middleware('check.secret')->group(function () {
     Route::get('/pizza-cap-export-action-plans', [PizzaCAPController::class, 'exportActionPlans'])->name('pizza.cap.export.plans');
     Route::get('/pizza-cap-export-actions', [PizzaCAPController::class, 'exportActions'])->name('pizza.cap.export.actions');
 
-Route::get('/inventory/export', [InventoryWebhookController::class, 'exportCsv']);
+    Route::get('/inventory/export', [InventoryWebhookController::class, 'exportCsv']);
+
+    // Approvals Export
+    Route::get('/approvals/export', [ApprovalController::class, 'exportCsv']);
 
 });
 
@@ -105,6 +110,9 @@ Route::middleware('auth.verify')->group(function () {
     Route::get('/pizza/littlecaesars/data', [LittleCaesarsHrDepartmentController::class, 'getData']);
     Route::get('/deposit-delivery/get-data/{start_date?}/{end_date?}/{franchisee_num?}', [DepositDeliveryController::class, 'getData']);
     Route::get('/deposit-delivery/get-data', [DepositDeliveryController::class, 'getData']);
+    
+    // Approvals Data
+    Route::get('/approvals/data', [ApprovalController::class, 'getData']);
 });
 
 Route::get('/deposit-delivery-dsqr/{store}/{date}', [DSQR_Controller::class, 'daily']);
@@ -162,3 +170,10 @@ Route::post('/hr-department/delete', [HrDepartmentController::class, 'delete']);
 Route::post('/inventory/create', [InventoryWebhookController::class, 'create']);
 Route::post('/inventory/update', [InventoryWebhookController::class, 'update']);
 Route::post('/inventory/delete', [InventoryWebhookController::class, 'delete']);
+
+
+/**************** Approvals Cognito Webhooks ****************/
+
+Route::post('/approvals/create', [ApprovalController::class, 'create']);
+Route::post('/approvals/update', [ApprovalController::class, 'update']);
+Route::post('/approvals/delete', [ApprovalController::class, 'delete']);
