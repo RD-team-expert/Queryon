@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 use Exception;
 
 class ApprovalController extends Controller
@@ -459,5 +461,233 @@ class ApprovalController extends Controller
             'success' => false,
             'message' => $message,
         ], $status);
+    }
+
+    /**
+     * Show the import form.
+     */
+    public function showImportForm()
+    {
+        return view('approvals.import');
+    }
+
+    /**
+     * Import approvals from Excel file.
+     */
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls|max:10240',
+        ]);
+
+        try {
+            $file = $request->file('file');
+            $spreadsheet = IOFactory::load($file->getPathname());
+            $worksheet = $spreadsheet->getActiveSheet();
+            $rows = $worksheet->toArray();
+
+            if (empty($rows)) {
+                return back()->with('error', 'Excel file is empty');
+            }
+
+            // Get header row
+            $headers = array_shift($rows);
+            
+            // Map headers to column indexes
+            $columnMap = $this->mapExcelColumns($headers);
+
+            $imported = 0;
+            $skipped = 0;
+            $errors = [];
+
+            DB::beginTransaction();
+
+            foreach ($rows as $index => $row) {
+                $rowNumber = $index + 2; // +2 because array is 0-indexed and we removed header
+
+                try {
+                    // Skip empty rows
+                    if (empty(array_filter($row))) {
+                        continue;
+                    }
+
+                    $data = $this->mapExcelRowToDatabase($row, $columnMap);
+
+                    // Skip if no cognito_id
+                    if (empty($data['cognito_id'])) {
+                        $skipped++;
+                        continue;
+                    }
+
+                    // Check if record exists
+                    $existing = Approval::where('cognito_id', $data['cognito_id'])->first();
+
+                    if ($existing) {
+                        // Update existing record
+                        $existing->update($data);
+                    } else {
+                        // Create new record
+                        Approval::create($data);
+                    }
+
+                    $imported++;
+
+                } catch (Exception $e) {
+                    $errors[] = "Row {$rowNumber}: " . $e->getMessage();
+                    Log::error('Import error on row ' . $rowNumber, [
+                        'error' => $e->getMessage(),
+                        'row' => $row,
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            $message = "Successfully imported {$imported} records.";
+            if ($skipped > 0) {
+                $message .= " Skipped {$skipped} records.";
+            }
+            if (!empty($errors)) {
+                $message .= " Errors: " . implode(', ', array_slice($errors, 0, 5));
+            }
+
+            Log::info('Excel import completed', [
+                'imported' => $imported,
+                'skipped' => $skipped,
+                'errors' => count($errors),
+            ]);
+
+            return back()->with('success', $message);
+
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error('Excel import failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return back()->with('error', 'Import failed: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Map Excel column headers to array indexes.
+     */
+    private function mapExcelColumns(array $headers): array
+    {
+        $map = [];
+        
+        foreach ($headers as $index => $header) {
+            $map[$header] = $index;
+        }
+        
+        return $map;
+    }
+
+    /**
+     * Map Excel row data to database fields.
+     */
+    private function mapExcelRowToDatabase(array $row, array $columnMap): array
+    {
+        $getValue = function($column) use ($row, $columnMap) {
+            return isset($columnMap[$column]) ? ($row[$columnMap[$column]] ?? null) : null;
+        };
+
+        // Get values from Excel
+        $approvalId = $getValue('APPROVALS_Id');
+        $requestDate = $getValue('Details_TodaysDate');
+        $entryDateCreated = $getValue('Entry_DateCreated');
+        $entryDateSubmitted = $getValue('Entry_DateSubmitted');
+        $entryDateUpdated = $getValue('Entry_DateUpdated');
+
+        return [
+            // Cognito Form Info
+            'cognito_id' => $approvalId,
+            'form_id' => '1318', // Static form ID for APPROVALS
+            'form_internal_name' => 'APPROVALS',
+            'form_name' => 'APPROVALS',
+
+            // Details Section
+            'approval_reason' => $getValue('Details_WhatIsTheThingThatYouNeedApprovalFor'),
+            'why' => $getValue('Details_Why'),
+            'requester_first_name' => $getValue('Details_Name_First'),
+            'requester_last_name' => $getValue('Details_Name_Last'),
+            'request_date' => $this->parseExcelDate($requestDate),
+            'store_id' => $getValue('Details_YourStore'),
+            'store_label' => $getValue('Details_YourStore_Label'),
+            'consulted_manager_first_name' => $getValue('Details_NameTheManagerWhoYouConsulted_First'),
+            'consulted_manager_last_name' => $getValue('Details_NameTheManagerWhoYouConsulted_Last'),
+
+            // The Final Decision Section
+            'decision' => $getValue('TheFinalDecision_Decision'),
+            'decision_notes' => $getValue('TheFinalDecision_Notes'),
+
+            // Entry Metadata
+            'entry_number' => null,
+            'entry_date_created' => $this->parseExcelDateTime($entryDateCreated),
+            'entry_date_submitted' => $this->parseExcelDateTime($entryDateSubmitted),
+            'entry_date_updated' => $this->parseExcelDateTime($entryDateUpdated),
+
+            // Entry Status
+            'entry_status' => $getValue('Entry_Status'),
+        ];
+    }
+
+    /**
+     * Parse Excel date value (M/D/YYYY format).
+     */
+    private function parseExcelDate($value): ?string
+    {
+        if (empty($value)) {
+            return null;
+        }
+
+        try {
+            // If it's a numeric Excel date
+            if (is_numeric($value)) {
+                $date = Date::excelToDateTimeObject($value);
+                return $date->format('Y-m-d');
+            }
+
+            // If it's a string date (M/D/YYYY or M/D/YYYY H:MM AM)
+            $date = \Carbon\Carbon::createFromFormat('n/j/Y', trim(explode(' ', $value)[0]));
+            return $date->format('Y-m-d');
+
+        } catch (Exception $e) {
+            Log::warning('Failed to parse Excel date', ['value' => $value]);
+            return null;
+        }
+    }
+
+    /**
+     * Parse Excel datetime value (M/D/YYYY H:MM AM format).
+     */
+    private function parseExcelDateTime($value): ?\Carbon\Carbon
+    {
+        if (empty($value)) {
+            return null;
+        }
+
+        try {
+            // If it's a numeric Excel date
+            if (is_numeric($value)) {
+                return \Carbon\Carbon::instance(Date::excelToDateTimeObject($value));
+            }
+
+            // If it's a string datetime (M/D/YYYY H:MM AM)
+            if (preg_match('/(\d+\/\d+\/\d+)\s+(\d+:\d+\s+[AP]M)/', $value, $matches)) {
+                $datePart = $matches[1];
+                $timePart = $matches[2];
+                return \Carbon\Carbon::createFromFormat('n/j/Y g:i A', "{$datePart} {$timePart}");
+            }
+
+            // If it's just a date (M/D/YYYY)
+            $date = \Carbon\Carbon::createFromFormat('n/j/Y', trim($value));
+            return $date->startOfDay();
+
+        } catch (Exception $e) {
+            Log::warning('Failed to parse Excel datetime', ['value' => $value]);
+            return null;
+        }
     }
 }
