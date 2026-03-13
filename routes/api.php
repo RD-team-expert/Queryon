@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CognitoComplaintWebhookController;
+use App\Http\Controllers\CognitoFeedbackWebhookController;
 use App\Http\Controllers\HealthPlan\HealthPlanController;
 use App\Http\Controllers\Hiring\HiringRequestExportController;
 use App\Http\Controllers\Hiring\HiringRequestsController;
@@ -94,7 +95,11 @@ Route::middleware('check.secret')->group(function () {
     // complaint
     Route::post('complaint/export', [CognitoComplaintWebhookController::class, 'exportCsv']);
 
+    // Feedback
+    Route::get('feedback/export', [CognitoFeedbackWebhookController::class, 'exportCsv']);
+
 });
+
 // Json
 Route::middleware('auth.verify')->group(function () {
 
@@ -176,7 +181,9 @@ Route::post('/reimbursement-requests/update', [ReimbursementRequestController::c
 Route::post('/reimbursement-requests/delete', [ReimbursementRequestController::class, 'delete']);
 
 Route::post('cognito/complaint/create', [CognitoComplaintWebhookController::class, 'create']);
-
 Route::post('cognito/complaint/update', [CognitoComplaintWebhookController::class, 'update']);
-
 Route::post('cognito/complaint/delete', [CognitoComplaintWebhookController::class, 'delete']);
+
+Route::post('cognito/feedback/create', [CognitoFeedbackWebhookController::class, 'create']);
+Route::post('cognito/feedback/update', [CognitoFeedbackWebhookController::class, 'update']);
+Route::post('cognito/feedback/delete', [CognitoFeedbackWebhookController::class, 'delete']);
