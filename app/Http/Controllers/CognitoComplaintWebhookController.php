@@ -92,6 +92,7 @@ class CognitoComplaintWebhookController extends Controller
 
         $headers = [
             'Entry Number',
+            'Store Label',
             'First Name',
             'Last Name',
             'Email',
@@ -118,6 +119,7 @@ class CognitoComplaintWebhookController extends Controller
 
                 fputcsv($handle, [
                     $complaint->external_entry_number,
+                    $complaint->store_label,
                     $complaint->first_name,
                     $complaint->last_name,
                     $complaint->email,
@@ -156,6 +158,8 @@ class CognitoComplaintWebhookController extends Controller
             'email' => data_get($data, 'YourComplaint.Email'),
 
             'complaint_date' => data_get($data, 'YourComplaint.Date'),
+
+            'store_label' => data_get($data, 'YourComplaint.Store.Label'),
 
             'manager_informed' => data_get(
                 $data,

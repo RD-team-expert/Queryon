@@ -10,6 +10,8 @@ class Complaint extends Model
 
         'external_entry_number',
 
+        'store_label',
+
         'issue',
         'suggestion',
 
