@@ -92,16 +92,13 @@ class CognitoComplaintWebhookController extends Controller
 
         $headers = [
             'Entry Number',
-            'Full Name',
             'First Name',
             'Last Name',
             'Email',
             'Phone',
             'Issue',
             'Suggestion',
-            'Store',
             'Manager Informed',
-            'Status',
             'Complaint Date',
             'Submitted At',
         ];
@@ -121,18 +118,15 @@ class CognitoComplaintWebhookController extends Controller
 
                 fputcsv($handle, [
                     $complaint->external_entry_number,
-                    $complaint->full_name,
                     $complaint->first_name,
                     $complaint->last_name,
                     $complaint->email,
                     $complaint->phone,
                     $complaint->issue,
                     $complaint->suggestion,
-                    $complaint->store_label,
                     $complaint->manager_informed,
-                    $complaint->status,
                     optional($complaint->complaint_date)->format('Y-m-d'),
-                    optional($complaint->submitted_at)->format('Y-m-d H:i:s'),
+                    optional($complaint->created_at)->format('Y-m-d H:i:s'),
                 ]);
             }
 
@@ -157,26 +151,16 @@ class CognitoComplaintWebhookController extends Controller
 
             'first_name' => data_get($data, 'YourComplaint.YourName.First'),
             'last_name' => data_get($data, 'YourComplaint.YourName.Last'),
-            'full_name' => data_get($data, 'YourComplaint.YourName.FirstAndLast'),
 
             'phone' => data_get($data, 'YourComplaint.Phone'),
             'email' => data_get($data, 'YourComplaint.Email'),
 
             'complaint_date' => data_get($data, 'YourComplaint.Date'),
 
-            'store_label' => data_get($data, 'YourComplaint.Store.Label'),
-
             'manager_informed' => data_get(
                 $data,
                 'YourComplaint.HasTheStoreManagerBeenInformedOfThisComplaint'
             ),
-
-            'status' => data_get($data, 'Entry.Status'),
-
-            'submitted_at' => data_get($data, 'Entry.DateSubmitted'),
-            'updated_at_external' => data_get($data, 'Entry.DateUpdated'),
-
-            'payload' => $data,
         ];
     }
 }

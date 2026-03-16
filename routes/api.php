@@ -92,13 +92,13 @@ Route::middleware('check.secret')->group(function () {
 
     Route::get('/reimbursement-requests/export', [ReimbursementRequestController::class, 'exportCsv']);
 
-    // complaint
-    Route::post('complaint/export', [CognitoComplaintWebhookController::class, 'exportCsv']);
-
     // Feedback
     Route::get('feedback/export', [CognitoFeedbackWebhookController::class, 'exportCsv']);
 
 });
+
+// complaint
+Route::get('complaint/export', [CognitoComplaintWebhookController::class, 'exportCsv']);
 
 // Json
 Route::middleware('auth.verify')->group(function () {
@@ -180,9 +180,13 @@ Route::post('/reimbursement-requests/create', [ReimbursementRequestController::c
 Route::post('/reimbursement-requests/update', [ReimbursementRequestController::class, 'update']);
 Route::post('/reimbursement-requests/delete', [ReimbursementRequestController::class, 'delete']);
 
+/**************** complaint Requests ****************/
+
 Route::post('cognito/complaint/create', [CognitoComplaintWebhookController::class, 'create']);
 Route::post('cognito/complaint/update', [CognitoComplaintWebhookController::class, 'update']);
 Route::post('cognito/complaint/delete', [CognitoComplaintWebhookController::class, 'delete']);
+
+/**************** feedback Requests ****************/
 
 Route::post('cognito/feedback/create', [CognitoFeedbackWebhookController::class, 'create']);
 Route::post('cognito/feedback/update', [CognitoFeedbackWebhookController::class, 'update']);
