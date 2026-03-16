@@ -95,10 +95,9 @@ Route::middleware('check.secret')->group(function () {
     // Feedback
     Route::get('feedback/export', [CognitoFeedbackWebhookController::class, 'exportCsv']);
 
+    // complaint
+    Route::get('complaint/export', [CognitoComplaintWebhookController::class, 'exportCsv']);
 });
-
-// complaint
-Route::get('complaint/export', [CognitoComplaintWebhookController::class, 'exportCsv']);
 
 // Json
 Route::middleware('auth.verify')->group(function () {
