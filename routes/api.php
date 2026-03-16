@@ -1,54 +1,48 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\CognitoComplaintWebhookController;
+use App\Http\Controllers\CognitoFeedbackWebhookController;
+use App\Http\Controllers\HealthPlan\HealthPlanController;
+use App\Http\Controllers\Hiring\HiringRequestExportController;
+use App\Http\Controllers\Hiring\HiringRequestsController;
+use App\Http\Controllers\Hiring\HiringSeparationController;
 use App\Http\Controllers\NVT\EmployeesDataController;
-use App\Http\Controllers\NVT\RDO_Data_Controller;
 use App\Http\Controllers\NVT\LateEarlyController;
-use Illuminate\Http\Request;
-
-use App\Http\Controllers\Pizza\Health_Plan_Controller;
+use App\Http\Controllers\NVT\RDO_Data_Controller;
+use App\Http\Controllers\Pizza\ApprovalController;
 use App\Http\Controllers\Pizza\DepositDeliveryController;
+use App\Http\Controllers\Pizza\DSQR_Controller;
+use App\Http\Controllers\Pizza\Health_Plan_Controller;
 use App\Http\Controllers\Pizza\LittleCaesarsHrDepartmentController;
+use App\Http\Controllers\Pizza\PizzaCAPController;
+use App\Http\Controllers\PizzaInventory\InventoryWebhookController;
+use App\Http\Controllers\PizzaPayController;
 use App\Http\Controllers\PizzaScheduleController;
 use App\Http\Controllers\PizzaScheduleWHController;
-use App\Http\Controllers\Pizza\DSQR_Controller;
-use App\Http\Controllers\HealthPlan\HealthPlanController;
-use App\Http\Controllers\Hiring\HiringRequestsController;
-use App\Http\Controllers\Hiring\HiringRequestExportController;
-
-use App\Http\Controllers\Hiring\HiringSeparationController;
-
-use App\Http\Controllers\PizzaPayController;
-use App\Http\Controllers\Pizza\PizzaCAPController;
-
-use App\Http\Controllers\PizzaInventory\InventoryWebhookController;
-use App\Http\Controllers\Pizza\ApprovalController;
-
 use App\Http\Controllers\ReimbursementRequestController;
+use Illuminate\Support\Facades\Route;
 
 /**************************  NVT  **********************/
-//********** Employees Data Form **************//
-//create
+// ********** Employees Data Form **************//
+// create
 Route::post('/employees-data', [EmployeesDataController::class, 'create']);
-//update
+// update
 Route::post('/employees-data/update', [EmployeesDataController::class, 'update']);
-//delete
+// delete
 Route::post('/employees-data/delete', [EmployeesDataController::class, 'destroy']);
 
-//********** RDO Data Form **************//
-//create
+// ********** RDO Data Form **************//
+// create
 Route::post('/rdo_data/create', [RDO_Data_Controller::class, 'create']);
-//update
+// update
 Route::post('/rdo_data/update', [RDO_Data_Controller::class, 'update']);
-//delete
+// delete
 Route::post('/rdo_data/destroy', [RDO_Data_Controller::class, 'destroy']);
 
-//********** Late_Early Data Form **************//
+// ********** Late_Early Data Form **************//
 Route::post('/store-late-early', [LateEarlyController::class, 'store']);
 Route::post('/update-late-early', [LateEarlyController::class, 'update']);
 Route::post('/delete-late-early', [LateEarlyController::class, 'destroy']);
-
 
 /**************************  PIZZA  **********************/
 
@@ -63,18 +57,14 @@ Route::post('/pizza/littlecaesars/create', [LittleCaesarsHrDepartmentController:
 Route::post('/pizza/littlecaesars/update', [LittleCaesarsHrDepartmentController::class, 'update']);
 Route::post('/pizza/littlecaesars/delete', [LittleCaesarsHrDepartmentController::class, 'destroy']);
 
-
-
-
 /************* deposit delivery ************/
 
 Route::post('pizza/deposit-delivery-data', [DepositDeliveryController::class, 'create']);
 Route::post('/deposit-delivery/update', [DepositDeliveryController::class, 'update']);
 Route::post('/deposit-delivery/delete', [DepositDeliveryController::class, 'destroy']);
 
-
-//**************Exporters************/
-//Csvs And excel endpoints
+// **************Exporters************/
+// Csvs And excel endpoints
 Route::middleware('check.secret')->group(function () {
 
     Route::get('/export', [EmployeesDataController::class, 'export']);
@@ -101,6 +91,12 @@ Route::middleware('check.secret')->group(function () {
     Route::get('/approvals/export', [ApprovalController::class, 'exportCsv']);
 
     Route::get('/reimbursement-requests/export', [ReimbursementRequestController::class, 'exportCsv']);
+
+    // Feedback
+    Route::get('feedback/export', [CognitoFeedbackWebhookController::class, 'exportCsv']);
+
+    // complaint
+    Route::get('complaint/export', [CognitoComplaintWebhookController::class, 'exportCsv']);
 });
 
 // Json
@@ -128,7 +124,6 @@ Route::get('/pizza-schedule/{date?}', [PizzaScheduleController::class, 'exportCs
 Route::get('/pizza-schedule-wh/{date}', [PizzaScheduleWHController::class, 'exportCsv']);
 Route::get('/pizza-schedule-wh/range/{start_date}/{end_date}', [PizzaScheduleWHController::class, 'exportCsvRange']);
 
-
 Route::post('health-plan/applications', [HealthPlanController::class, 'create']);
 Route::post('health-plan/applications-update', [HealthPlanController::class, 'update']);
 Route::post('health-plan/applications-delete', [HealthPlanController::class, 'delete']);
@@ -152,7 +147,6 @@ Route::post('/pizza/cap/create', [PizzaCAPController::class, 'create'])->name('p
 Route::post('/pizza/cap/update', [PizzaCAPController::class, 'update'])->name('pizza.cap.update');
 Route::post('/pizza/cap/delete', [PizzaCAPController::class, 'delete'])->name('pizza.cap.delete');
 
-
 /******************** HR Department ****************/
 
 // Store Management Routes
@@ -168,12 +162,10 @@ Route::post('/hr-department/create', [HrDepartmentController::class, 'create']);
 Route::post('/hr-department/update', [HrDepartmentController::class, 'update']);
 Route::post('/hr-department/delete', [HrDepartmentController::class, 'delete']);
 
-
 /**************** Pizza Inventory Webhooks ****************/
 Route::post('/inventory/create', [InventoryWebhookController::class, 'create']);
 Route::post('/inventory/update', [InventoryWebhookController::class, 'update']);
 Route::post('/inventory/delete', [InventoryWebhookController::class, 'delete']);
-
 
 /**************** Approvals Cognito Webhooks ****************/
 
@@ -181,9 +173,20 @@ Route::post('/approvals/create', [ApprovalController::class, 'create']);
 Route::post('/approvals/update', [ApprovalController::class, 'update']);
 Route::post('/approvals/delete', [ApprovalController::class, 'delete']);
 
-
 /**************** Reimbursement Requests ****************/
 
 Route::post('/reimbursement-requests/create', [ReimbursementRequestController::class, 'create']);
 Route::post('/reimbursement-requests/update', [ReimbursementRequestController::class, 'update']);
 Route::post('/reimbursement-requests/delete', [ReimbursementRequestController::class, 'delete']);
+
+/**************** complaint Requests ****************/
+
+Route::post('cognito/complaint/create', [CognitoComplaintWebhookController::class, 'create']);
+Route::post('cognito/complaint/update', [CognitoComplaintWebhookController::class, 'update']);
+Route::post('cognito/complaint/delete', [CognitoComplaintWebhookController::class, 'delete']);
+
+/**************** feedback Requests ****************/
+
+Route::post('cognito/feedback/create', [CognitoFeedbackWebhookController::class, 'create']);
+Route::post('cognito/feedback/update', [CognitoFeedbackWebhookController::class, 'update']);
+Route::post('cognito/feedback/delete', [CognitoFeedbackWebhookController::class, 'delete']);
