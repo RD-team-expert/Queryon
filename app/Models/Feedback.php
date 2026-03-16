@@ -10,6 +10,7 @@ class Feedback extends Model
 
     protected $fillable = [
         'external_entry_number',
+        'store_label',
         'improvement_feedback',
         'first_name',
         'last_name',

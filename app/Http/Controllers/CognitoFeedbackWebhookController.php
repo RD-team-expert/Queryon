@@ -92,6 +92,7 @@ class CognitoFeedbackWebhookController extends Controller
 
         $headers = [
             'external_entry_number',
+            'Store Label',
             'improvement_feedback',
             'first_name',
             'last_name',
@@ -113,6 +114,7 @@ class CognitoFeedbackWebhookController extends Controller
             foreach ($feedbackRows as $row) {
                 fputcsv($handle, [
                     $row->external_entry_number,
+                    $row->store_label,
                     $row->improvement_feedback,
                     $row->first_name,
                     $row->last_name,
@@ -142,6 +144,7 @@ class CognitoFeedbackWebhookController extends Controller
 
             'work_schedule_satisfaction_rating' => data_get($data, 'YourFeedback.OutOf5Stars.HowSatisfiedAreYouWithTheConsistencyOfYourWorkScheduleAndHours2_Rating'),
 
+            'store_label' => data_get($data, 'YourFeedback.Store.Label'),
         ];
     }
 }
