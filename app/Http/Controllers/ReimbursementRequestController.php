@@ -34,12 +34,11 @@ class ReimbursementRequestController extends Controller
         $data = $request->json()->all();
 
         $formId = data_get($data, 'Id');
-        if (!$formId) {
+        if (! $formId) {
             return response()->json(['status' => 'error', 'message' => 'Missing Id'], 400);
         }
 
         ReimbursementRequest::where('form_id', $formId)->delete();
-
 
         return response()->json(['status' => 'deleted']);
     }
@@ -70,7 +69,7 @@ class ReimbursementRequestController extends Controller
             'bi_rejection_reason',
         ];
 
-        $filename = 'employee_reimbursement_requests_' . now()->format('Y-m-d_H-i-s') . '.csv';
+        $filename = 'employee_reimbursement_requests_'.now()->format('Y-m-d_H-i-s').'.csv';
 
         return Response::streamDownload(function () use ($requests, $headers) {
             $out = fopen('php://output', 'w');
@@ -114,13 +113,12 @@ class ReimbursementRequestController extends Controller
     {
         $data = $request->json()->all();
 
-
         // Validate required pieces
         $validator = Validator::make($data, [
             'Id' => 'required|string',
-            'SM.ExpenseDetails.ExpenseDate' => 'required|date',
-            'SM.ExpenseDetails.ExpenseDescription' => 'required|string',
-            'SM.ExpenseDetails.ExpensesAmount' => 'required|numeric',
+            'SM.ExpenseDate' => 'required|date',
+            'SM.ExpenseDescription' => 'required|string',
+            'SM.ExpenseAmount' => 'required|numeric',
         ]);
 
         if ($validator->fails()) {
@@ -136,20 +134,26 @@ class ReimbursementRequestController extends Controller
                 ['form_id' => data_get($data, 'Id')],
                 [
                     'form_id' => data_get($data, 'Id'),
-                    'store_manager_full_name' => data_get($data, 'SM.StoreManagerName.FirstAndLast'),
-                    'manager_consulted_full_name' => data_get($data, 'SM.NameTheManagerWhoYouConsulted.FirstAndLast'),
-                    'employee_full_name' => data_get($data, 'SM.EmployeeInfo.EmployeeFullName.FirstAndLast'),
-                    'store_label' => data_get($data, 'SM.EmployeeInfo.Store2.Label'),
-                    'expense_date' => data_get($data, 'SM.ExpenseDetails.ExpenseDate'),
-                    'expense_description' => data_get($data, 'SM.ExpenseDetails.ExpenseDescription'),
-                    'expenses_amount' => data_get($data, 'SM.ExpenseDetails.ExpensesAmount'),
-                    'group_manager_full_name' => data_get($data, 'GM.Name.FirstAndLast'),
+
+                    // Store Manager section (SM)
+                    'store_manager_full_name' => data_get($data, 'SM.StoreManagerFullName.FirstAndLast'),
+                    'manager_consulted_full_name' => data_get($data, 'SM.ManagerConsultedFullName.FirstAndLast'),
+                    'employee_full_name' => data_get($data, 'SM.EmployeeFullName.FirstAndLast'),
+                    'store_label' => data_get($data, 'SM.Store.Label'),
+                    'expense_date' => data_get($data, 'SM.ExpenseDate'),
+                    'expense_description' => data_get($data, 'SM.ExpenseDescription'),
+                    'expenses_amount' => data_get($data, 'SM.ExpenseAmount'),
+
+                    // GM section
+                    'group_manager_full_name' => data_get($data, 'GM.GMFullName.FirstAndLast'),
                     'approve' => data_get($data, 'GM.Approve'),
-                    'notes' => data_get($data, 'GM.Notes'),
+                    'notes' => data_get($data, 'GM.Note'), // FIX: "Note" not "Notes"
                     'rejection_reason' => data_get($data, 'GM.RejectionReason'),
-                    'bi_full_name' => data_get($data, 'BI.Name.FirstAndLast'),
+
+                    // BI section
+                    'bi_full_name' => data_get($data, 'BI.BIName.FirstAndLast'),
                     'bi_approve' => data_get($data, 'BI.Approve'),
-                    'bi_notes' => data_get($data, 'BI.Notes'),
+                    'bi_notes' => data_get($data, 'BI.Note'), // FIX: "Note" not "Notes"
                     'bi_rejection_reason' => data_get($data, 'BI.RejectionReason'),
                 ]
             );
