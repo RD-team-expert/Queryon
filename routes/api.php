@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CognitoComplaintWebhookController;
 use App\Http\Controllers\CognitoFeedbackWebhookController;
+use App\Http\Controllers\EmployeeTransitionWebhookController;
 use App\Http\Controllers\HealthPlan\HealthPlanController;
 use App\Http\Controllers\Hiring\HiringRequestExportController;
 use App\Http\Controllers\Hiring\HiringRequestsController;
@@ -97,6 +98,9 @@ Route::middleware('check.secret')->group(function () {
 
     // complaint
     Route::get('complaint/export', [CognitoComplaintWebhookController::class, 'exportCsv']);
+
+    // employee trasition
+    Route::get('transition/export', [EmployeeTransitionWebhookController::class, 'exportCsv']);
 });
 
 // Json
@@ -190,3 +194,9 @@ Route::post('cognito/complaint/delete', [CognitoComplaintWebhookController::clas
 Route::post('cognito/feedback/create', [CognitoFeedbackWebhookController::class, 'create']);
 Route::post('cognito/feedback/update', [CognitoFeedbackWebhookController::class, 'update']);
 Route::post('cognito/feedback/delete', [CognitoFeedbackWebhookController::class, 'delete']);
+
+/**************** Employee Transition Requests ****************/
+
+Route::post('cognito/transition/create', [EmployeeTransitionWebhookController::class, 'create']);
+Route::post('cognito/transition/update', [EmployeeTransitionWebhookController::class, 'update']);
+Route::post('cognito/transition/delete', [EmployeeTransitionWebhookController::class, 'delete']);
