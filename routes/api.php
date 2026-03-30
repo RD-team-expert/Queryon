@@ -102,6 +102,8 @@ Route::middleware('check.secret')->group(function () {
 
     // employee trasition
     Route::get('transition/export', [EmployeeTransitionWebhookController::class, 'exportCsv']);
+    Route::get('cognito/employee-sick-hours/export', [EmployeeSickHoursController::class, 'exportCsv']);
+
 });
 
 // Json
@@ -205,6 +207,5 @@ Route::post('cognito/transition/delete', [EmployeeTransitionWebhookController::c
 Route::post('cognito/employee-sick-hours/create', [EmployeeSickHoursController::class, 'store']);
 Route::post('cognito/employee-sick-hours/update', [EmployeeSickHoursController::class, 'update']);
 Route::post('cognito/employee-sick-hours/delete', [EmployeeSickHoursController::class, 'delete']);
-Route::get('cognito/employee-sick-hours/export', [EmployeeSickHoursController::class, 'exportCsv']);
  
 
