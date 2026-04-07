@@ -21,6 +21,7 @@ use App\Http\Controllers\PizzaPayController;
 use App\Http\Controllers\PizzaScheduleController;
 use App\Http\Controllers\PizzaScheduleWHController;
 use App\Http\Controllers\ReimbursementRequestController;
+use App\Http\Controllers\UrgentActionRecordController;
 use Illuminate\Support\Facades\Route;
 
 /**************************  NVT  **********************/
@@ -101,6 +102,8 @@ Route::middleware('check.secret')->group(function () {
 
     // employee trasition
     Route::get('transition/export', [EmployeeTransitionWebhookController::class, 'exportCsv']);
+
+    Route::get('urgent-action-records/export', [UrgentActionRecordController::class, 'exportCsv']);
 });
 
 // Json
@@ -200,3 +203,11 @@ Route::post('cognito/feedback/delete', [CognitoFeedbackWebhookController::class,
 Route::post('cognito/transition/create', [EmployeeTransitionWebhookController::class, 'create']);
 Route::post('cognito/transition/update', [EmployeeTransitionWebhookController::class, 'update']);
 Route::post('cognito/transition/delete', [EmployeeTransitionWebhookController::class, 'delete']);
+
+/**************** Urgent Action Records ****************/
+
+Route::prefix('cognito/urgent-action-records')->group(function () {
+    Route::post('/create', [UrgentActionRecordController::class, 'create']);
+    Route::post('/update', [UrgentActionRecordController::class, 'update']);
+    Route::post('/delete', [UrgentActionRecordController::class, 'delete']);
+});
