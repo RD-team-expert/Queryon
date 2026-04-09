@@ -10,6 +10,7 @@ class Feedback extends Model
 
     protected $fillable = [
         'external_entry_number',
+        'submitted_at',
         'store_label',
         'improvement_feedback',
         'first_name',
@@ -17,5 +18,9 @@ class Feedback extends Model
         'valued_respected_appreciated_rating',
         'work_schedule_satisfaction_rating',
 
+    ];
+
+    protected $casts = [
+        'submitted_at' => 'datetime',
     ];
 }

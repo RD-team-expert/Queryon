@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Feedback;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
 
 class CognitoFeedbackWebhookController extends Controller
@@ -20,10 +19,6 @@ class CognitoFeedbackWebhookController extends Controller
                 'message' => 'Entry number missing',
             ], 400);
         }
-
-        Log::info('Cognito feedback CREATE', [
-            'entry_number' => $entryNumber,
-        ]);
 
         $feedback = Feedback::updateOrCreate(
             ['external_entry_number' => $entryNumber],
@@ -48,10 +43,6 @@ class CognitoFeedbackWebhookController extends Controller
             ], 400);
         }
 
-        Log::info('Cognito feedback UPDATE', [
-            'entry_number' => $entryNumber,
-        ]);
-
         $feedback = Feedback::updateOrCreate(
             ['external_entry_number' => $entryNumber],
             $this->mapData($data)
@@ -74,10 +65,6 @@ class CognitoFeedbackWebhookController extends Controller
                 'message' => 'Entry number missing',
             ], 400);
         }
-
-        Log::info('Cognito feedback DELETE', [
-            'entry_number' => $entryNumber,
-        ]);
 
         Feedback::where('external_entry_number', $entryNumber)->delete();
 
@@ -120,7 +107,7 @@ class CognitoFeedbackWebhookController extends Controller
                     $row->last_name,
                     $row->valued_respected_appreciated_rating,
                     $row->work_schedule_satisfaction_rating,
-                    optional($row->created_at)->format('Y-m-d H:i:s'),
+                    optional($row->submitted_at)->format('Y-m-d H:i:s'),
                 ]);
             }
 
@@ -134,7 +121,7 @@ class CognitoFeedbackWebhookController extends Controller
     {
         return [
             'external_entry_number' => data_get($data, 'Entry.Number'),
-
+            'submitted_at' => data_get($data, 'Entry.DateSubmitted'),
             'improvement_feedback' => data_get($data, 'YourFeedback.WhatIsOneThingWeCanDoToImproveYourExperience'),
 
             'first_name' => data_get($data, 'YourFeedback.YourName.First'),
