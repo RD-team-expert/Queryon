@@ -22,12 +22,13 @@ class Complaint extends Model
         'email',
 
         'complaint_date',
-
+        'submitted_at',
         'manager_informed',
 
     ];
 
     protected $casts = [
         'complaint_date' => 'date',
+        'submitted_at' => 'datetime',
     ];
 }
