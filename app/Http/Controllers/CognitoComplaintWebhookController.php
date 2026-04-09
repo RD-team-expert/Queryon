@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Complaint;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
 
 class CognitoComplaintWebhookController extends Controller
@@ -20,10 +19,6 @@ class CognitoComplaintWebhookController extends Controller
                 'message' => 'Entry number missing',
             ], 400);
         }
-
-        Log::info('Cognito complaint CREATE', [
-            'entry_number' => $entryNumber,
-        ]);
 
         $complaint = Complaint::create($this->mapData($data));
 
@@ -44,10 +39,6 @@ class CognitoComplaintWebhookController extends Controller
                 'message' => 'Entry number missing',
             ], 400);
         }
-
-        Log::info('Cognito complaint UPDATE', [
-            'entry_number' => $entryNumber,
-        ]);
 
         $complaint = Complaint::updateOrCreate(
             ['external_entry_number' => $entryNumber],
@@ -71,10 +62,6 @@ class CognitoComplaintWebhookController extends Controller
                 'message' => 'Entry number missing',
             ], 400);
         }
-
-        Log::info('Cognito complaint DELETE', [
-            'entry_number' => $entryNumber,
-        ]);
 
         Complaint::where(
             'external_entry_number',
