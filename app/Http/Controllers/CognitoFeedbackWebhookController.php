@@ -10,7 +10,7 @@ class CognitoFeedbackWebhookController extends Controller
 {
     public function create(Request $request)
     {
-        $data = $request->json()->all();
+         $data = $request->json()->all();
         $entryNumber = data_get($data, 'Entry.Number');
 
         if (! $entryNumber) {
