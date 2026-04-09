@@ -115,7 +115,7 @@ class CognitoComplaintWebhookController extends Controller
                     $complaint->suggestion,
                     $complaint->manager_informed,
                     optional($complaint->complaint_date)->format('Y-m-d'),
-                    optional($complaint->created_at)->format('Y-m-d H:i:s'),
+                    optional($complaint->submitted_at)->format('Y-m-d H:i:s'),
                 ]);
             }
 
@@ -145,7 +145,7 @@ class CognitoComplaintWebhookController extends Controller
             'email' => data_get($data, 'YourComplaint.Email'),
 
             'complaint_date' => data_get($data, 'YourComplaint.Date'),
-
+            'submitted_at' => data_get($data, 'Entry.DateSubmitted'),
             'store_label' => data_get($data, 'YourComplaint.Store.Label'),
 
             'manager_informed' => data_get(
