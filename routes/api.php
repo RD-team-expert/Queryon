@@ -4,6 +4,7 @@ use App\Http\Controllers\CognitoComplaintWebhookController;
 use App\Http\Controllers\CognitoFeedbackWebhookController;
 use App\Http\Controllers\EmployeeSickHoursController;
 use App\Http\Controllers\EmployeeTransitionWebhookController;
+use App\Http\Controllers\FieldMissionController;
 use App\Http\Controllers\HealthPlan\HealthPlanController;
 use App\Http\Controllers\Hiring\HiringRequestExportController;
 use App\Http\Controllers\Hiring\HiringRequestsController;
@@ -107,6 +108,7 @@ Route::middleware('check.secret')->group(function () {
     Route::get('urgent-action-records/export', [UrgentActionRecordController::class, 'exportCsv']);
     Route::get('cognito/employee-sick-hours/export', [EmployeeSickHoursController::class, 'exportCsv']);
 
+    Route::get('/field-missions/export', [FieldMissionController::class, 'export']);
 });
 
 // Json
@@ -218,3 +220,9 @@ Route::prefix('cognito/urgent-action-records')->group(function () {
 Route::post('cognito/employee-sick-hours/create', [EmployeeSickHoursController::class, 'store']);
 Route::post('cognito/employee-sick-hours/update', [EmployeeSickHoursController::class, 'update']);
 Route::post('cognito/employee-sick-hours/delete', [EmployeeSickHoursController::class, 'delete']);
+
+Route::prefix('cognito/usa-field-mission')->group(function () {
+    Route::post('/create', [FieldMissionController::class, 'create']);
+    Route::post('/update', [FieldMissionController::class, 'update']);
+    Route::post('/delete', [FieldMissionController::class, 'delete']);
+});
