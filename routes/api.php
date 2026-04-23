@@ -108,8 +108,8 @@ Route::middleware('check.secret')->group(function () {
     Route::get('urgent-action-records/export', [UrgentActionRecordController::class, 'exportCsv']);
     Route::get('cognito/employee-sick-hours/export', [EmployeeSickHoursController::class, 'exportCsv']);
 
+    Route::get('/field-missions/export', [FieldMissionController::class, 'export']);
 });
-Route::get('/field-missions/export', [FieldMissionController::class, 'export']);
 
 // Json
 Route::middleware('auth.verify')->group(function () {
