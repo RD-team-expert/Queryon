@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
 
-class FeildMessionController extends Controller
+class FieldMissionController extends Controller
 {
     public function create(Request $request)
     {
