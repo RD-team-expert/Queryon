@@ -6,7 +6,6 @@ use App\Models\FieldMissionModels\FieldMission;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
 
 class FeildMessionController extends Controller
@@ -23,10 +22,6 @@ class FeildMessionController extends Controller
             ], 400);
         }
 
-        Log::info('Field Mission CREATE', [
-            'entry_id' => $entryId,
-        ]);
-
         DB::beginTransaction();
 
         try {
@@ -42,9 +37,9 @@ class FeildMessionController extends Controller
             DB::commit();
 
             return response()->json([
-                'status' => 'created_or_updated',
-                'id' => $record->id,
-            ]);
+                'status' => 'created',
+                'data' => $record,
+            ], 201);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -68,10 +63,6 @@ class FeildMessionController extends Controller
             ], 400);
         }
 
-        Log::info('Field Mission UPDATE', [
-            'entry_id' => $entryId,
-        ]);
-
         DB::beginTransaction();
 
         try {
@@ -87,8 +78,8 @@ class FeildMessionController extends Controller
 
             return response()->json([
                 'status' => 'updated',
-                'id' => $record->id,
-            ]);
+                'data' => $record,
+            ], 200);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -111,10 +102,6 @@ class FeildMessionController extends Controller
                 'message' => 'Entry ID missing',
             ], 400);
         }
-
-        Log::info('Field Mission DELETE', [
-            'entry_id' => $entryId,
-        ]);
 
         FieldMission::where('entry_id', $entryId)->delete();
 
@@ -145,7 +132,7 @@ class FeildMessionController extends Controller
             'submitted_at',
         ];
 
-        $filename = 'field_missions_maintenance_'.now()->format('Y-m-d_H-i-s').'.csv';
+        $filename = 'field_missions'.now()->format('Y-m-d_H-i-s').'.csv';
 
         return Response::streamDownload(function () use ($records, $headers) {
             $out = fopen('php://output', 'w');
