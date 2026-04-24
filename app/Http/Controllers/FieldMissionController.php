@@ -123,12 +123,13 @@ class FieldMissionController extends Controller
             'employee_name',
             'total_hour',
             'hour_pay',
-            'mony_owed',
             'total_pay',
+            'fuel',
+            'invoices_amount',
+            'money_owed',
             'total_deduction',
             'net_pay',
-            'miles2',
-            'fuel',
+            // 'miles2',
             'submitted_at',
         ];
 
@@ -150,12 +151,13 @@ class FieldMissionController extends Controller
                     $record->employee_name,
                     $record->total_hour,
                     $record->hour_pay,
-                    $record->mony_owed,
                     $record->total_pay,
+                    $record->fuel,
+                    $record->invoices_amount,
+                    $record->money_owed,
                     $record->total_deduction,
                     $record->net_pay,
-                    $record->miles2,
-                    $record->fuel,
+                    // $record->miles2,
                     optional($record->submitted_at)->format('Y-m-d H:i:s'),
                 ]);
             }
@@ -183,7 +185,7 @@ class FieldMissionController extends Controller
                 'employee_name' => data_get($data, 'FinanceMaintenance.USAMGMT.EmployeeFullName.FirstAndLast'),
                 'total_hour' => data_get($data, 'FinanceMaintenance.USAMGMT.TotalHours2'),
                 'hour_pay' => data_get($data, 'FinanceMaintenance.USAMGMT.HourlyPay'),
-                'mony_owed' => data_get($data, 'FinanceMaintenance.USAMGMT.MoneyOwed'),
+                'money_owed' => data_get($data, 'FinanceMaintenance.USAMGMT.MoneyOwed'),
                 'total_pay' => data_get($data, 'FinanceMaintenance.USAMGMT.TotalPayWithoutDeductions'),
                 'total_deduction' => data_get($data, 'FinanceMaintenance.USAMGMT.TotalDeductions'),
                 'net_pay' => data_get($data, 'FinanceMaintenance.USAMGMT.NetPay'),
@@ -194,7 +196,7 @@ class FieldMissionController extends Controller
             'employee_name' => data_get($data, 'FinanceMaintenance.Maintenance.EmployeeFullName.FirstAndLast'),
             'total_hour' => data_get($data, 'FinanceMaintenance.Maintenance.TotalHours2'),
             'hour_pay' => data_get($data, 'FinanceMaintenance.Maintenance.HourlyPay'),
-            'mony_owed' => data_get($data, 'FinanceMaintenance.Maintenance.MoneyOwed'),
+            'money_owed' => data_get($data, 'FinanceMaintenance.Maintenance.MoneyOwed'),
             'total_pay' => data_get($data, 'FinanceMaintenance.Maintenance.TotalPayWithoutDeductions'),
             'total_deduction' => data_get($data, 'FinanceMaintenance.Maintenance.TotalDeductions'),
             'net_pay' => data_get($data, 'FinanceMaintenance.Maintenance.NetPay'),
@@ -221,6 +223,7 @@ class FieldMissionController extends Controller
             $record->update([
                 'fuel' => null,
                 'miles2' => null,
+                'invoices_amount' => null,
             ]);
 
             return;
@@ -229,6 +232,8 @@ class FieldMissionController extends Controller
         $record->update([
             'fuel' => data_get($data, 'FinanceMaintenance.Maintenance.FuelIfThereIsAny'),
             'miles2' => data_get($data, 'FinanceMaintenance.Maintenance.MilesIfThereIsAny2'),
+            'invoices_amount' => data_get($data, 'FinanceMaintenance.Maintenance.InvoicesAmountIfThereIsAny'),
+
         ]);
 
         foreach (data_get($data, 'FinanceMaintenance.Maintenance.InvoicesIfThereIsAny', []) as $inv) {

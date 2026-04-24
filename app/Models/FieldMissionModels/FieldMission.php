@@ -14,12 +14,13 @@ class FieldMission extends Model
         'employee_name',
         'total_hour',
         'hour_pay',
-        'mony_owed',
+        'money_owed',
         'total_pay',
         'total_deduction',
         'net_pay',
         'miles2',
         'fuel',
+        'invoices_amount',
         'submitted_at',
     ];
 
