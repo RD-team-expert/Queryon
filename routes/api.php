@@ -24,6 +24,7 @@ use App\Http\Controllers\PizzaScheduleController;
 use App\Http\Controllers\PizzaScheduleWHController;
 use App\Http\Controllers\ReimbursementRequestController;
 use App\Http\Controllers\UrgentActionRecordController;
+use App\Http\Controllers\WBRController;
 use Illuminate\Support\Facades\Route;
 
 /**************************  NVT  **********************/
@@ -109,6 +110,8 @@ Route::middleware('check.secret')->group(function () {
     Route::get('cognito/employee-sick-hours/export', [EmployeeSickHoursController::class, 'exportCsv']);
 
     Route::get('/field-missions/export', [FieldMissionController::class, 'export']);
+
+    Route::get('/reports/wbr/{store}/{date}', [WBRController::class, 'exportJson']);
 });
 
 // Json
