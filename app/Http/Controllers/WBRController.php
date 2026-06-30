@@ -9,6 +9,7 @@ use App\Models\ReimbursementRequest;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class WBRController extends Controller
 {
@@ -62,6 +63,95 @@ class WBRController extends Controller
             'complaints' => $complaints,
             'feedbacks' => $feedbacks,
             'money_owed' => $moneyOwed,
+        ]);
+    }
+
+    public function exportJsonBulk(Request $request): JsonResponse
+    {
+        $request->validate([
+            'stores'     => ['required'],
+            'start_date' => ['required', 'date_format:Y-m-d'],
+            'end_date'   => ['required', 'date_format:Y-m-d'],
+        ]);
+
+        $startDate = CarbonImmutable::parse($request->query('start_date'))->startOfDay();
+        $endDate   = CarbonImmutable::parse($request->query('end_date'))->endOfDay();
+
+        $storesInput = $request->input('stores');
+        $filterAll   = ($storesInput === 'all');
+
+        $requestedStoreNumbers = [];
+        if (!$filterAll) {
+            $slugs = is_array($storesInput) ? $storesInput : [$storesInput];
+            foreach ($slugs as $slug) {
+                if (preg_match('/-\s*(\d+)\s*$/', trim($slug), $m)) {
+                    $requestedStoreNumbers[] = (int) $m[1];
+                }
+            }
+        }
+
+        $feedbacks = Feedback::query()
+            ->whereBetween('submitted_at', [$startDate, $endDate])
+            ->get();
+
+        $complaints = Complaint::query()
+            ->whereBetween('submitted_at', [$startDate, $endDate])
+            ->get();
+
+        $moneyOwed = ReimbursementRequest::query()
+            ->whereBetween('expense_date', [
+                $startDate->toDateString(),
+                $endDate->toDateString(),
+            ])
+            ->get();
+
+        $storeMap = [];
+
+        $addRecord = function (?string $storeLabel, string $bucket, $record) use (
+            &$storeMap, $filterAll, $requestedStoreNumbers
+        ) {
+            if ($storeLabel === null) return;
+            if (!preg_match('/-\s*(\d+)\s*$/', $storeLabel, $m)) return;
+            $storeNumber = (int) $m[1];
+
+            if (!$filterAll && !in_array($storeNumber, $requestedStoreNumbers, true)) return;
+
+            if (!isset($storeMap[$storeNumber])) {
+                $storeMap[$storeNumber] = [
+                    'store_label'  => $storeLabel,
+                    'store_number' => $storeNumber,
+                    'complaints'   => [],
+                    'feedbacks'    => [],
+                    'money_owed'   => [],
+                ];
+            }
+            $storeMap[$storeNumber][$bucket][] = $record;
+        };
+
+        foreach ($feedbacks  as $r) { $addRecord($r->store_label, 'feedbacks',  $r); }
+        foreach ($complaints as $r) { $addRecord($r->store_label, 'complaints', $r); }
+        foreach ($moneyOwed  as $r) { $addRecord($r->store_label, 'money_owed', $r); }
+
+        if (!$filterAll) {
+            foreach ($requestedStoreNumbers as $n) {
+                if (!isset($storeMap[$n])) {
+                    $storeMap[$n] = [
+                        'store_label'  => null,
+                        'store_number' => $n,
+                        'complaints'   => [],
+                        'feedbacks'    => [],
+                        'money_owed'   => [],
+                    ];
+                }
+            }
+        }
+
+        ksort($storeMap);
+
+        return response()->json([
+            'start_date' => $startDate->toDateString(),
+            'end_date'   => $endDate->toDateString(),
+            'stores'     => array_values($storeMap),
         ]);
     }
 

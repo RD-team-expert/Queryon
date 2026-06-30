@@ -111,6 +111,7 @@ Route::middleware('check.secret')->group(function () {
 
     Route::get('/field-missions/export', [FieldMissionController::class, 'export']);
 
+    Route::get('/reports/wbr/bulk', [WBRController::class, 'exportJsonBulk']);
     Route::get('/reports/wbr/{store}/{date}', [WBRController::class, 'exportJson']);
 });
 
