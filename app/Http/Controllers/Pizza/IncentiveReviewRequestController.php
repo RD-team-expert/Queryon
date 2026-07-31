@@ -273,7 +273,7 @@ class IncentiveReviewRequestController extends Controller
             // Management Section
             'manager_first_name' => data_get($managementSection, 'ManagerName.First'),
             'manager_last_name' => data_get($managementSection, 'ManagerName.Last'),
-            'manager_approval' => data_get($managementSection, 'ManagerAppraval'),
+            'manager_approval' => data_get($managementSection, 'ManagerApproval'),
             // Only one of FinalDecision/RejectionReason is ever populated, depending on ManagerAppraval
             'decision_notes' => data_get($managementSection, 'FinalDecision') ?? data_get($managementSection, 'RejectionReason'),
         ];
