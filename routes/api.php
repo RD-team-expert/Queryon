@@ -16,6 +16,7 @@ use App\Http\Controllers\Pizza\ApprovalController;
 use App\Http\Controllers\Pizza\DepositDeliveryController;
 use App\Http\Controllers\Pizza\DSQR_Controller;
 use App\Http\Controllers\Pizza\Health_Plan_Controller;
+use App\Http\Controllers\Pizza\IncentiveReviewRequestController;
 use App\Http\Controllers\Pizza\LittleCaesarsHrDepartmentController;
 use App\Http\Controllers\Pizza\PizzaCAPController;
 use App\Http\Controllers\PizzaInventory\InventoryWebhookController;
@@ -94,6 +95,9 @@ Route::middleware('check.secret')->group(function () {
 
     // Approvals Export
     Route::get('/approvals/export', [ApprovalController::class, 'exportCsv']);
+
+    // Incentive Review Requests Export
+    Route::get('/incentive-review-request/export', [IncentiveReviewRequestController::class, 'exportCsv']);
 
     Route::get('/reimbursement-requests/export', [ReimbursementRequestController::class, 'exportCsv']);
 
@@ -188,6 +192,12 @@ Route::post('/inventory/delete', [InventoryWebhookController::class, 'delete']);
 Route::post('/approvals/create', [ApprovalController::class, 'create']);
 Route::post('/approvals/update', [ApprovalController::class, 'update']);
 Route::post('/approvals/delete', [ApprovalController::class, 'delete']);
+
+/**************** Incentive Review Requests ****************/
+
+Route::post('/incentive-review-request/create', [IncentiveReviewRequestController::class, 'create']);
+Route::post('/incentive-review-request/update', [IncentiveReviewRequestController::class, 'update']);
+Route::post('/incentive-review-request/delete', [IncentiveReviewRequestController::class, 'delete']);
 
 /**************** Reimbursement Requests ****************/
 
