@@ -24,6 +24,7 @@ use App\Http\Controllers\PizzaPayController;
 use App\Http\Controllers\PizzaScheduleController;
 use App\Http\Controllers\PizzaScheduleWHController;
 use App\Http\Controllers\ReimbursementRequestController;
+use App\Http\Controllers\StaffMeetingDocumentationWebhookController;
 use App\Http\Controllers\UrgentActionRecordController;
 use App\Http\Controllers\WBRController;
 use Illuminate\Support\Facades\Route;
@@ -111,6 +112,7 @@ Route::middleware('check.secret')->group(function () {
     Route::get('transition/export', [EmployeeTransitionWebhookController::class, 'exportCsv']);
 
     Route::get('urgent-action-records/export', [UrgentActionRecordController::class, 'exportCsv']);
+    Route::get('cognito/staff-meeting-documentation/export', [StaffMeetingDocumentationWebhookController::class, 'exportCsv']);
     Route::get('cognito/employee-sick-hours/export', [EmployeeSickHoursController::class, 'exportCsv']);
 
     Route::get('/field-missions/export', [FieldMissionController::class, 'export']);
@@ -240,3 +242,8 @@ Route::prefix('cognito/usa-field-mission')->group(function () {
     Route::post('/update', [FieldMissionController::class, 'update']);
     Route::post('/delete', [FieldMissionController::class, 'delete']);
 });
+
+/**************** Staff Meeting Documentation ****************/
+
+Route::post('cognito/staff-meeting-documentation/create', [StaffMeetingDocumentationWebhookController::class, 'create']);
+Route::post('cognito/staff-meeting-documentation/delete', [StaffMeetingDocumentationWebhookController::class, 'delete']);
