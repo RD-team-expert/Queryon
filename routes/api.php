@@ -18,6 +18,7 @@ use App\Http\Controllers\Pizza\DSQR_Controller;
 use App\Http\Controllers\Pizza\Health_Plan_Controller;
 use App\Http\Controllers\Pizza\IncentiveReviewRequestController;
 use App\Http\Controllers\Pizza\LittleCaesarsHrDepartmentController;
+use App\Http\Controllers\Pizza\NewHireExceptionController;
 use App\Http\Controllers\Pizza\PizzaCAPController;
 use App\Http\Controllers\PizzaInventory\InventoryWebhookController;
 use App\Http\Controllers\PizzaPayController;
@@ -99,6 +100,9 @@ Route::middleware('check.secret')->group(function () {
 
     // Incentive Review Requests Export
     Route::get('/incentive-review-request/export', [IncentiveReviewRequestController::class, 'exportCsv']);
+
+    // New Hire Exception Export
+    Route::get('/new-hire-exception/export', [NewHireExceptionController::class, 'exportCsv']);
 
     Route::get('/reimbursement-requests/export', [ReimbursementRequestController::class, 'exportCsv']);
 
@@ -247,3 +251,9 @@ Route::prefix('cognito/usa-field-mission')->group(function () {
 
 Route::post('cognito/staff-meeting-documentation/create', [StaffMeetingDocumentationWebhookController::class, 'create']);
 Route::post('cognito/staff-meeting-documentation/delete', [StaffMeetingDocumentationWebhookController::class, 'delete']);
+
+/**************** New Hire Exception ****************/
+
+Route::post('/new-hire-exception/create', [NewHireExceptionController::class, 'create']);
+Route::post('/new-hire-exception/update', [NewHireExceptionController::class, 'update']);
+Route::post('/new-hire-exception/delete', [NewHireExceptionController::class, 'delete']);
