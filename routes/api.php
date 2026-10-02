@@ -20,6 +20,7 @@ use App\Http\Controllers\Pizza\IncentiveReviewRequestController;
 use App\Http\Controllers\Pizza\LittleCaesarsHrDepartmentController;
 use App\Http\Controllers\Pizza\NewHireExceptionController;
 use App\Http\Controllers\Pizza\PizzaCAPController;
+use App\Http\Controllers\Pizza\WeeklyPizzaMissionsHoursController;
 use App\Http\Controllers\PizzaInventory\InventoryWebhookController;
 use App\Http\Controllers\PizzaPayController;
 use App\Http\Controllers\PizzaScheduleController;
@@ -103,6 +104,9 @@ Route::middleware('check.secret')->group(function () {
 
     // New Hire Exception Export
     Route::get('/new-hire-exception/export', [NewHireExceptionController::class, 'exportCsv']);
+
+    // Weekly Pizza Missions Hours Export
+    Route::get('/weekly-pizza-missions-hours/export', [WeeklyPizzaMissionsHoursController::class, 'exportCsv']);
 
     Route::get('/reimbursement-requests/export', [ReimbursementRequestController::class, 'exportCsv']);
 
@@ -257,3 +261,9 @@ Route::post('cognito/staff-meeting-documentation/delete', [StaffMeetingDocumenta
 Route::post('/new-hire-exception/create', [NewHireExceptionController::class, 'create']);
 Route::post('/new-hire-exception/update', [NewHireExceptionController::class, 'update']);
 Route::post('/new-hire-exception/delete', [NewHireExceptionController::class, 'delete']);
+
+/**************** Weekly Pizza Missions Hours ****************/
+
+Route::post('/weekly-pizza-missions-hours/create', [WeeklyPizzaMissionsHoursController::class, 'create']);
+Route::post('/weekly-pizza-missions-hours/update', [WeeklyPizzaMissionsHoursController::class, 'update']);
+Route::post('/weekly-pizza-missions-hours/delete', [WeeklyPizzaMissionsHoursController::class, 'delete']);
