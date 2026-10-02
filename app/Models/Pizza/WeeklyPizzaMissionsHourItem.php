@@ -14,6 +14,7 @@ class WeeklyPizzaMissionsHourItem extends Model
         'weekly_pizza_missions_hour_id',
         'day',
         'work_type',
+        'what_work',
         'note',
         'store_label',
         'hours',

@@ -160,6 +160,7 @@ class WeeklyPizzaMissionsHoursController extends Controller
                 'day',
                 'day_total_hours',
                 'work_type',
+                'what_work',
                 'store_label',
                 'hours',
                 'note',
@@ -179,7 +180,7 @@ class WeeklyPizzaMissionsHoursController extends Controller
                 ];
 
                 if ($record->items->isEmpty()) {
-                    fputcsv($handle, array_merge($parentRow, ['', '', '', '', '', '']));
+                    fputcsv($handle, array_merge($parentRow, ['', '', '', '', '', '', '']));
                     continue;
                 }
 
@@ -191,6 +192,7 @@ class WeeklyPizzaMissionsHoursController extends Controller
                         $item->day,
                         $record->{WeeklyPizzaMissionsHour::totalColumnForDay($item->day)},
                         $item->work_type,
+                        $item->what_work,
                         $item->store_label,
                         $item->hours,
                         $item->note,
@@ -266,7 +268,14 @@ class WeeklyPizzaMissionsHoursController extends Controller
     {
         foreach (WeeklyPizzaMissionsHour::DAYS as $day) {
             foreach (data_get($data, $day, []) ?? [] as $entry) {
-                WeeklyPizzaMissionsHourItem::create($this->mapItemData($recordId, $day, $entry));
+                $itemData = $this->mapItemData($recordId, $day, $entry);
+
+                // Days that weren't filled out still arrive with one blank entry, skip those
+                if ($this->isBlankItem($itemData)) {
+                    continue;
+                }
+
+                WeeklyPizzaMissionsHourItem::create($itemData);
             }
         }
     }
@@ -280,10 +289,21 @@ class WeeklyPizzaMissionsHoursController extends Controller
             'weekly_pizza_missions_hour_id' => $recordId,
             'day' => $day,
             'work_type' => data_get($item, 'WorkType'),
+            'what_work' => data_get($item, 'WhatWork'),
             'note' => data_get($item, 'Note'),
             'store_label' => data_get($item, 'Store.Label'),
             'hours' => data_get($item, 'Hours'),
         ];
+    }
+
+    /**
+     * True when a mapped daily entry has no values besides its keys.
+     */
+    private function isBlankItem(array $itemData): bool
+    {
+        return collect($itemData)
+            ->except(['weekly_pizza_missions_hour_id', 'day'])
+            ->every(fn ($value) => $value === null || $value === '');
     }
 
     /**
