@@ -163,6 +163,11 @@ class WeeklyPizzaMissionsHoursController extends Controller
                 'what_work',
                 'store_label',
                 'hours',
+                'hourly_pay',
+                'gas',
+                'invoice',
+                'proof',
+                'money_owed',
                 'note',
             ];
 
@@ -180,7 +185,7 @@ class WeeklyPizzaMissionsHoursController extends Controller
                 ];
 
                 if ($record->items->isEmpty()) {
-                    fputcsv($handle, array_merge($parentRow, ['', '', '', '', '', '', '']));
+                    fputcsv($handle, array_merge($parentRow, array_fill(0, 11, '')));
                     continue;
                 }
 
@@ -195,6 +200,11 @@ class WeeklyPizzaMissionsHoursController extends Controller
                         $item->what_work,
                         $item->store_label,
                         $item->hours,
+                        $item->hourly_pay,
+                        $item->gas,
+                        $item->invoice,
+                        collect($item->proof ?? [])->pluck('Name')->implode(', '),
+                        $item->money_owed,
                         $item->note,
                     ]));
                 }
@@ -285,6 +295,13 @@ class WeeklyPizzaMissionsHoursController extends Controller
      */
     private function mapItemData(int $recordId, string $day, array $item): array
     {
+        $whatWork = strtolower((string) data_get($item, 'WhatWork'));
+        $isMaintenance = str_contains($whatWork, 'maint');
+        $isMgmt = str_contains($whatWork, 'mgmt');
+
+        // Maintenance Work carries hourly pay, gas, invoice and proof; MGMT Work carries money owed
+        $proof = $isMaintenance ? data_get($item, 'Proof') : null;
+
         return [
             'weekly_pizza_missions_hour_id' => $recordId,
             'day' => $day,
@@ -293,6 +310,11 @@ class WeeklyPizzaMissionsHoursController extends Controller
             'note' => data_get($item, 'Note'),
             'store_label' => data_get($item, 'Store.Label'),
             'hours' => data_get($item, 'Hours'),
+            'hourly_pay' => $isMaintenance ? data_get($item, 'HourlyPay') : null,
+            'gas' => $isMaintenance ? data_get($item, 'Gas') : null,
+            'invoice' => $isMaintenance ? data_get($item, 'Invoice') : null,
+            'proof' => $proof ?: null,
+            'money_owed' => $isMgmt ? data_get($item, 'MoneyOwed') : null,
         ];
     }
 

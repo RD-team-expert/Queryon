@@ -18,10 +18,20 @@ class WeeklyPizzaMissionsHourItem extends Model
         'note',
         'store_label',
         'hours',
+        'hourly_pay',
+        'gas',
+        'invoice',
+        'proof',
+        'money_owed',
     ];
 
     protected $casts = [
         'hours' => 'decimal:2',
+        'hourly_pay' => 'decimal:2',
+        'gas' => 'decimal:2',
+        'invoice' => 'decimal:2',
+        'proof' => 'array',
+        'money_owed' => 'decimal:2',
     ];
 
     /**
