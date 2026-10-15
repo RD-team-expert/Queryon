@@ -157,15 +157,16 @@ class WeeklyPizzaMissionsHoursController extends Controller
                 'name_full',
                 'week_number',
                 'days_filled',
+                'hourly_pay',
                 'day',
                 'day_total_hours',
                 'work_type',
                 'what_work',
                 'store_label',
                 'hours',
-                'hourly_pay',
                 'gas',
                 'invoice',
+                'deduction',
                 'proof',
                 'money_owed',
                 'note',
@@ -182,10 +183,11 @@ class WeeklyPizzaMissionsHoursController extends Controller
                     $record->name_full,
                     $record->week_number,
                     implode(', ', $record->days_filled ?? []),
+                    $record->hourly_pay,
                 ];
 
                 if ($record->items->isEmpty()) {
-                    fputcsv($handle, array_merge($parentRow, array_fill(0, 11, '')));
+                    fputcsv($handle, array_merge($parentRow, array_fill(0, 12, '')));
                     continue;
                 }
 
@@ -200,9 +202,9 @@ class WeeklyPizzaMissionsHoursController extends Controller
                         $item->what_work,
                         $item->store_label,
                         $item->hours,
-                        $item->hourly_pay,
                         $item->gas,
                         $item->invoice,
+                        $item->deduction,
                         collect($item->proof ?? [])->pluck('Name')->implode(', '),
                         $item->money_owed,
                         $item->note,
@@ -262,6 +264,7 @@ class WeeklyPizzaMissionsHoursController extends Controller
             'name_full' => data_get($data, 'Name.FirstAndLast'),
             'week_number' => data_get($data, 'WeekNumber'),
             'days_filled' => data_get($data, 'WhichDaysYouWannaFillOut'),
+            'hourly_pay' => data_get($data, 'HourlyPay'),
         ];
 
         foreach (WeeklyPizzaMissionsHour::DAYS as $day) {
@@ -299,7 +302,7 @@ class WeeklyPizzaMissionsHoursController extends Controller
         $isMaintenance = str_contains($whatWork, 'maint');
         $isMgmt = str_contains($whatWork, 'mgmt');
 
-        // Maintenance Work carries hourly pay, gas, invoice and proof; MGMT Work carries money owed
+        // Maintenance Work carries gas, invoice and proof; MGMT Work carries money owed
         $proof = $isMaintenance ? data_get($item, 'Proof') : null;
 
         return [
@@ -310,9 +313,9 @@ class WeeklyPizzaMissionsHoursController extends Controller
             'note' => data_get($item, 'Note'),
             'store_label' => data_get($item, 'Store.Label'),
             'hours' => data_get($item, 'Hours'),
-            'hourly_pay' => $isMaintenance ? data_get($item, 'HourlyPay') : null,
             'gas' => $isMaintenance ? data_get($item, 'Gas') : null,
             'invoice' => $isMaintenance ? data_get($item, 'Invoice') : null,
+            'deduction' => data_get($item, 'Deduction'),
             'proof' => $proof ?: null,
             'money_owed' => $isMgmt ? data_get($item, 'MoneyOwed') : null,
         ];
