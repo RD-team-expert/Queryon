@@ -16,6 +16,7 @@ class ReimbursementRequest extends Model
         'employee_full_name',
         'store_label',
         'expense_date',
+        'week_number',
         'expense_description',
         'expenses_amount',
         'group_manager_full_name',

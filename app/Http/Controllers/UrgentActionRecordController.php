@@ -113,6 +113,8 @@ class UrgentActionRecordController extends Controller
             'Manager First Name',
             'Manager Last Name',
             'Submitted At',
+            // Appended last so the existing column order in the Excel query stays intact
+            'Proof',
         ];
 
         $filename = 'urgent_actions_'.now()->format('Y-m-d_H-i-s').'.csv';
@@ -137,6 +139,7 @@ class UrgentActionRecordController extends Controller
                     $record->manager_first_name,
                     $record->manager_last_name,
                     optional($record->created_at)->format('Y-m-d H:i:s'),
+                    $record->has_proof,
                 ]);
             }
 
@@ -167,6 +170,8 @@ class UrgentActionRecordController extends Controller
 
             'manager_first_name' => data_get($data, 'Details.NameTheManagerWhoYouConsulted.First'),
             'manager_last_name' => data_get($data, 'Details.NameTheManagerWhoYouConsulted.Last'),
+
+            'has_proof' => data_get($data, 'Details.DoYouHaveAProof'),
         ];
     }
 }

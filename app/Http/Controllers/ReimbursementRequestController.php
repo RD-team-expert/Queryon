@@ -67,9 +67,11 @@ class ReimbursementRequestController extends Controller
             'bi_approve',
             'bi_notes',
             'bi_rejection_reason',
+            // Appended last so the existing column order in the Excel query stays intact
+            'week_number',
         ];
 
-        $filename = 'employee_reimbursement_requests_'.now()->format('Y-m-d_H-i-s').'.csv';
+        $filename ='employee_reimbursement_requests_'.now()->format('Y-m-d_H-i-s').'.csv';
 
         return Response::streamDownload(function () use ($requests, $headers) {
             $out = fopen('php://output', 'w');
@@ -97,6 +99,7 @@ class ReimbursementRequestController extends Controller
                     $request->bi_approve,
                     $request->bi_notes,
                     $request->bi_rejection_reason,
+                    $request->week_number,
                 ]);
             }
 
@@ -116,7 +119,9 @@ class ReimbursementRequestController extends Controller
         // Validate required pieces
         $validator = Validator::make($data, [
             'Id' => 'required|string',
-            'SM.ExpenseDate' => 'required|date',
+            // Expense Date is hidden on the form, Week# replaces it
+            'SM.ExpenseDate' => 'nullable|date',
+            'SM.Week' => 'nullable|integer|min:1|max:52',
             'SM.ExpenseDescription' => 'required|string',
             'SM.ExpenseAmount' => 'required|numeric',
         ]);
@@ -141,6 +146,7 @@ class ReimbursementRequestController extends Controller
                     'employee_full_name' => data_get($data, 'SM.EmployeeFullName.FirstAndLast'),
                     'store_label' => data_get($data, 'SM.Store.Label'),
                     'expense_date' => data_get($data, 'SM.ExpenseDate'),
+                    'week_number' => data_get($data, 'SM.Week'),
                     'expense_description' => data_get($data, 'SM.ExpenseDescription'),
                     'expenses_amount' => data_get($data, 'SM.ExpenseAmount'),
 
