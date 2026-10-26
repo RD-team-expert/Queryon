@@ -16,5 +16,6 @@ class UrgentActionRecord extends Model
         'why',
         'manager_first_name',
         'manager_last_name',
+        'has_proof',
     ];
 }
